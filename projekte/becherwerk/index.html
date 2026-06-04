@@ -8,11 +8,21 @@
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
 <style>
   :root{--bg:#0f141a;--card:#18212c;--card2:#1e2935;--line:#2c3a4a;--tx:#e6edf3;--mut:#8aa0b4;
-        --acc:#3b9dff;--done:#2ecc71;--work:#ffb02e;--open:#5a6b7b;--red:#ff5d5d;}
+        --acc:#3b9dff;--done:#2ecc71;--work:#ffb02e;--open:#5a6b7b;--red:#ff5d5d;
+        /* Zeichenfeld-„Papier" (Canvas-Hintergrund) + Rahmen, themebar */
+        --paper:#0e1620;--paper-line:#26333f;
+        /* Diagramm-/Skizzen-Flaechen (SVG-Container) */
+        --fig-bg:#0c141d;--fig-bg2:#0c141d;}
+  /* === Light-Mode: heller Hintergrund, dunkle Schrift, gleiche Akzente === */
+  body.light{--bg:#f4f6f9;--card:#ffffff;--card2:#eef2f6;--line:#d2dae3;--tx:#1b2530;--mut:#5a6b7b;
+        --acc:#1769c4;--done:#1f9d57;--work:#c77a06;--open:#7a8a99;--red:#d63b3b;
+        --paper:#fbfcfe;--paper-line:#c4d0dc;
+        --fig-bg:#f7f9fc;--fig-bg2:#f7f9fc;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.55;font-size:15px}
   header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#13202f,#0f141a);
          border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  body.light header{background:linear-gradient(180deg,#e7eef6,#f4f6f9)}
   header h1{font-size:17px;margin:0;font-weight:600}
   header .sub{color:var(--mut);font-size:12.5px}
   header .live{margin-left:auto;font-size:12px;color:var(--done);display:flex;align-items:center;gap:6px}
@@ -54,7 +64,7 @@
   .q .lab{color:var(--acc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
   .res{background:#0c1c12;border:1px solid #1d5a36;border-radius:10px;padding:10px 16px;margin:12px 0}
   .res .lab{color:var(--done);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
-  code{background:#0c1620;padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:13px}
+  code{background:var(--paper);padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:13px}
   .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--mut);margin-left:6px}
   table.dat{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
   table.dat th,table.dat td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line)}
@@ -82,8 +92,42 @@
   .draw-tools .cols{display:flex;gap:5px;margin:0 4px}
   .draw-tools .sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid #0006}
   .draw-stage{resize:vertical;overflow:hidden;height:240px;min-height:150px}
-  .draw-cv{display:block;width:100%;height:100%;background:#0e1620;touch-action:none;cursor:crosshair}
+  .draw-cv{display:block;width:100%;height:100%;background:var(--paper);touch-action:none;cursor:crosshair}
   .draw-status{font-size:11.5px;color:var(--acc);padding:5px 11px;min-height:14px;border-top:1px solid var(--line)}
+  /* === Light-Mode-Feinschliff fuer dunkel hartkodierte Flaechen === */
+  body.light .draw{background:var(--card2);border-color:var(--line)}
+  body.light .draw-tools{background:var(--card2)}
+  body.light .draw-tools button{background:#fff}
+  body.light .step.active{background:#e8f1fc}
+  body.light .ansatz{background:#eef5fc;border-color:#bcd6ef}
+  body.light .ansatz .lab{color:var(--acc)}
+  body.light .q{background:#eaf3fb;border-color:#b9d6ee}
+  body.light .res{background:#eaf7ef;border-color:#bfe3cd}
+  body.light .docs a{background:#eef4fa;border-color:#cdd9e6;color:#1b3854}
+  body.light .docs a:hover{color:#0b2740}
+  body.light .docs a.ref{background:#f1edfa;border-color:#d6c9ef;color:#4a3a73}
+  body.light .docs embed{background:#fff}
+  body.light .leg .grp{color:#7a8a99}
+  body.light .box.geg .lab{color:#1769c4}
+  body.light .box.ges .lab{color:#b5740a}
+  /* SVG-Diagramme/Skizzen: helle Achsen/Texte/Hilfslinien im Light-Mode abdunkeln,
+     damit sie auf hellem Figur-Hintergrund (--fig-bg) lesbar bleiben.
+     Helle Konstruktionsfarben (gelb #ffd14a, rot #ff5d5d/#ff8a8a) bleiben unveraendert. */
+  body.light .figsvg text[fill="#8aa0b4"],
+  body.light .figsvg g[fill="#8aa0b4"]{fill:#46586a}
+  body.light .figsvg text[fill="#cfd9e3"]{fill:#1b2530}
+  body.light .figsvg text[fill="#7f93a6"],
+  body.light .figsvg g[fill="#7f93a6"]{fill:#5a6b7b}
+  body.light .figsvg line[stroke="#5a6b7b"],
+  body.light .figsvg g[stroke="#5a6b7b"] line{stroke:#46586a}
+  body.light .figsvg g[stroke="#24303d"] line{stroke:#c4d0dc}
+  body.light .figsvg g[stroke="#56708a"] line{stroke:#7d93ab}
+  body.light .figsvg circle[stroke="#5de1ff"]{stroke:#0f8fb5}
+  body.light .figsvg text[fill="#5de1ff"]{fill:#0c7ea1}
+  body.light .figsvg circle[stroke="#7fffc4"]{stroke:#129b6e}
+  body.light .figsvg text[fill="#7fffc4"]{fill:#0e8a61}
+  body.light .figsvg rect[fill="#1e2935"]{fill:#e6ecf2}
+  body.light .figsvg rect[stroke="#56708a"]{stroke:#7d93ab}
 </style>
 </head>
 <body>
@@ -176,8 +220,8 @@
             <tr><td>315 mm</td><td>180 mm</td><td>224 mm</td><td>118 mm</td><td>56 mm</td><td>4,75 L</td></tr></table>
         </div>
         <h3>Grafische Auswahl — Volumenstrom-Diagramm (Becherabstand 500 mm)</h3>
-        <div style="background:#0c141d;border:1px solid var(--line);border-radius:10px;padding:12px 8px">
-          <svg viewBox="0 0 560 352" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
+        <div style="background:var(--fig-bg);border:1px solid var(--line);border-radius:10px;padding:12px 8px">
+          <svg class="figsvg" viewBox="0 0 560 352" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
             <g stroke="#24303d" stroke-width="1">
               <line x1="150" y1="20" x2="150" y2="320"/><line x1="250" y1="20" x2="250" y2="320"/>
               <line x1="350" y1="20" x2="350" y2="320"/><line x1="450" y1="20" x2="450" y2="320"/>
@@ -305,8 +349,8 @@
         <p class="muted" style="margin:.4em 0 0;font-size:12px">Motor-Betriebsmoment 34,3 Nm \(<\) \(M_N=49\) Nm → Motor läuft im Teillastbereich, Reserve vorhanden.</p>
 
         <h3>Schematische Getriebeskizze</h3>
-        <div style="background:#0c141d;border:1px solid var(--line);border-radius:10px;padding:12px 8px">
-          <svg viewBox="0 0 560 250" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
+        <div style="background:var(--fig-bg);border:1px solid var(--line);border-radius:10px;padding:12px 8px">
+          <svg class="figsvg" viewBox="0 0 560 250" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
             <!-- Motor -->
             <rect x="14" y="96" width="58" height="48" rx="5" fill="#1e2935" stroke="#56708a"/>
             <text x="43" y="124" fill="#8aa0b4" font-size="10" text-anchor="middle">Motor</text>
@@ -349,6 +393,8 @@
           <p class="muted" style="font-size:11.5px;margin:6px 4px 0">Schema (nicht maßstäblich): Motor → drehelastische Kupplung → Stirnradstufe 1 (20/90) → Zwischenwelle → Stirnradstufe 2 (18/71) → Getriebeausgang = kleines Kettenrad (18) → Kettentrieb 16B-1 → Becherwerks-Hauptwelle (großes Kettenrad 28).</p>
         </div>
         <div class="draw" data-task="D"></div>
+        <h3>Anhaenge zu diesem Schritt</h3>
+        <div class="attach" data-task="D"></div>
       </div>
 
       <!-- E erledigt -->
@@ -599,9 +645,10 @@ function setupDraw(el){
     cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);
     S=Math.min(r.width/PW,r.height/PH);OX=(r.width-PW*S)/2;OY=(r.height-PH*S)/2;redraw();}
   const P2C=(x,y)=>[OX+x*S,OY+y*S],C2P=(x,y)=>[(x-OX)/S,(y-OY)/S];
+  const cssVar=(n,fb)=>{const v=getComputedStyle(document.body).getPropertyValue(n).trim();return v||fb;};
   function redraw(){const r=cv.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
-    const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle='#0e1620';ctx.fillRect(px,py,PW*S,PH*S);
-    ctx.strokeStyle='#26333f';ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
+    const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle=cssVar('--paper','#0e1620');ctx.fillRect(px,py,PW*S,PH*S);
+    ctx.strokeStyle=cssVar('--paper-line','#26333f');ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
     for(const st of strokes)paint(st,ctx,P2C,S);}
   function paint(st,c,map,sc){if(st.points.length<2)return;c.save();c.lineCap='round';c.lineJoin='round';
     c.strokeStyle=st.color;c.globalAlpha=st.tool==='marker'?0.35:1;
@@ -641,8 +688,13 @@ function setupDraw(el){
   el.querySelector('[data-act=fit]').onclick=()=>fit();
   el.querySelector('[data-act=zoomin]').onclick=()=>zoom(1.2);
   el.querySelector('[data-act=zoomout]').onclick=()=>zoom(0.83);
+  // Export bewusst mit fixem dunklem Papier (#0e1620): die Standard-Stiftfarben
+  // sind helle Toene, so bleibt das an Claude gesendete Bild immer gut lesbar —
+  // unabhaengig davon, ob gerade Light- oder Dark-Mode aktiv ist.
   function exportPNG(){const oc=document.createElement('canvas');oc.width=PW;oc.height=PH;const o=oc.getContext('2d');
     o.fillStyle='#0e1620';o.fillRect(0,0,PW,PH);for(const st of strokes)paint(st,o,(x,y)=>[x,y],1);return oc.toDataURL('image/png');}
+  // Bei Theme-Wechsel (theme.js feuert 'ingpad-theme') Papier neu zeichnen.
+  window.addEventListener('ingpad-theme',()=>redraw());
   el.querySelector('[data-act=send]').onclick=async()=>{
     if(!strokes.length){status('⚠ noch nichts gezeichnet');return;}
     status('sende…');try{await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,image:exportPNG()})});
@@ -654,6 +706,14 @@ function setupDraw(el){
   setTool('pen');new ResizeObserver(()=>fit()).observe(stage);fit();
 }
 document.querySelectorAll('.draw').forEach(setupDraw);
+</script>
+
+<!-- Wiederverwendbare Engine-Komponenten (aus /app/) -->
+<script src="/app/theme.js"></script>
+<script src="/app/attachments.js"></script>
+<script>
+  /* Anhang-UI fuer alle .attach-Container initialisieren */
+  document.querySelectorAll('.attach').forEach(setupAttachments);
 </script>
 </body>
 </html>
