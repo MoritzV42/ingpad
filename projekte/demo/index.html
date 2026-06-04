@@ -215,7 +215,7 @@
           </ol>
           <p class="muted" style="margin:.5em 0 0;font-size:12.5px">Rechne \(M_b\), \(W\) und \(\sigma_b\) im Zeichenfeld → „An Claude senden".</p>
         </div>
-        <div class="draw" data-task="B"></div>
+        <div class="draw" data-task="B" data-default-img="beispiel-skizze.png"></div>
       </div>
 
       <!-- C offen -->
@@ -272,6 +272,7 @@ function setupDraw(el){
   const COLORS=['#ffd14a','#ff5d5d','#5de1ff','#7fffc4','#e6edf3'];
   let strokes=JSON.parse(localStorage.getItem(key)||'[]'),undoStack=[];
   let tool='pen',color=COLORS[0],drawing=false,cur=null,panning=false,panLast=null,S=1,OX=0,OY=0;
+  let dimg=null; if(el.dataset.defaultImg){dimg=new Image();dimg.onload=()=>redraw();dimg.src=el.dataset.defaultImg;}
   const statusEl=el.querySelector('[data-status]'),status=t=>statusEl.textContent=t;
   const save=()=>localStorage.setItem(key,JSON.stringify(strokes));
   const snap=()=>{undoStack.push(JSON.stringify(strokes));if(undoStack.length>40)undoStack.shift();};
@@ -281,6 +282,7 @@ function setupDraw(el){
   const P2C=(x,y)=>[OX+x*S,OY+y*S],C2P=(x,y)=>[(x-OX)/S,(y-OY)/S];
   function redraw(){const r=cv.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
     const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle='#0e1620';ctx.fillRect(px,py,PW*S,PH*S);
+    if(dimg&&dimg.complete&&!strokes.length)ctx.drawImage(dimg,px,py,PW*S,PH*S);
     ctx.strokeStyle='#26333f';ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
     for(const st of strokes)paint(st,ctx,P2C,S);}
   function paint(st,c,map,sc){if(st.points.length<2)return;c.save();c.lineCap='round';c.lineJoin='round';
