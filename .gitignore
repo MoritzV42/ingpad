@@ -1,0 +1,17 @@
+# === Copyright: exercise PDFs & scanned references are NOT distributed ===
+# (e.g. DAA-Technikum materials). Bring your own; they stay local.
+*.pdf
+kurzref/
+**/kurzref/
+
+# Runtime / generated
+scratchpad.json
+submit_*.png
+__pycache__/
+*.pyc
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+node_modules/

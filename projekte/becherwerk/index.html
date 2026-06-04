@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solve-Canvas — Antriebsstrang Becherwerk</title>
+<script>MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+<style>
+  :root{--bg:#0f141a;--card:#18212c;--card2:#1e2935;--line:#2c3a4a;--tx:#e6edf3;--mut:#8aa0b4;
+        --acc:#3b9dff;--done:#2ecc71;--work:#ffb02e;--open:#5a6b7b;--red:#ff5d5d;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.55;font-size:15px}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#13202f,#0f141a);
+         border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  header .sub{color:var(--mut);font-size:12.5px}
+  header .live{margin-left:auto;font-size:12px;color:var(--done);display:flex;align-items:center;gap:6px}
+  header .live .dot{width:8px;height:8px;border-radius:50%;background:var(--done);box-shadow:0 0 8px var(--done)}
+  .layout{display:grid;grid-template-columns:290px 1fr;gap:22px;max-width:1240px;margin:0 auto;padding:20px 24px 80px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  aside{position:sticky;top:62px;max-height:calc(100vh - 80px);overflow:auto}
+  aside .card{margin-bottom:14px}
+  aside h2{font-size:13px;margin:0 0 10px;color:var(--acc);text-transform:uppercase;letter-spacing:.4px}
+  .leg{font-size:12.5px}
+  .leg .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--line)}
+  .leg .row:last-child{border-bottom:none}
+  .leg .k{color:var(--mut)}.leg .val{color:var(--tx);text-align:right;font-variant-numeric:tabular-nums}
+  .leg .grp{margin-top:8px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#6c8197}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:15px;margin:0 0 12px;letter-spacing:.3px;text-transform:uppercase;color:var(--acc)}
+  .card h3{font-size:13.5px;margin:14px 0 6px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+  .steps{display:flex;flex-direction:column;gap:2px}
+  .step{display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:8px;background:var(--card2);border:1px solid transparent}
+  .step.active{border-color:var(--acc);background:#172533}
+  .step .badge{flex:0 0 auto;width:21px;height:21px;border-radius:50%;font-size:11.5px;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .b-done{background:rgba(46,204,113,.18);color:var(--done);border:1px solid var(--done)}
+  .b-work{background:rgba(255,176,46,.16);color:var(--work);border:1px solid var(--work)}
+  .b-open{background:rgba(90,107,123,.16);color:var(--open);border:1px solid var(--open)}
+  .step .t{flex:1}.step .t b{font-weight:600}.step .t span{color:var(--mut);font-size:12px;display:block}
+  .step .st{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--mut)}
+  .work-area .card{border-left:3px solid var(--work)}
+  .work-area .card.done{border-left-color:var(--done)}
+  .work-area .card.open{border-left-color:var(--open);opacity:.7}
+  .gg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:4px 0 6px}
+  @media(max-width:680px){.gg{grid-template-columns:1fr}}
+  .box{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--card2)}
+  .box .lab{font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px}
+  .box.geg .lab{color:#7fd1ff}.box.ges .lab{color:#ffd17f}
+  .box ul{margin:4px 0 0;padding-left:18px}.box li{margin:3px 0}
+  .ansatz{background:#101b27;border:1px solid #24405a;border-radius:10px;padding:8px 16px;margin:10px 0}
+  .ansatz .lab{font-size:11px;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--acc)}
+  .q{background:#10243a;border:1px solid #1d4a73;border-radius:10px;padding:12px 16px;margin:12px 0}
+  .q .lab{color:var(--acc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .res{background:#0c1c12;border:1px solid #1d5a36;border-radius:10px;padding:10px 16px;margin:12px 0}
+  .res .lab{color:var(--done);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  code{background:#0c1620;padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:13px}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--mut);margin-left:6px}
+  table.dat{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  table.dat th,table.dat td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line)}
+  table.dat th{color:var(--mut);font-weight:600}
+  .muted{color:var(--mut)}
+  .foot{color:var(--mut);font-size:12px;text-align:center;margin-top:24px}
+  mjx-container{color:var(--tx)!important}
+  /* Unterlagen / Nachschlagen */
+  .docs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 2px}
+  .docs a{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#bcd3e8;text-decoration:none;
+          background:#13202e;border:1px solid #284057;border-radius:8px;padding:6px 11px}
+  .docs a:hover{border-color:var(--acc);color:#fff}
+  .docs a.ref{background:#1a1726;border-color:#3c2f57;color:#cdbcf0}
+  .docs a.ref:hover{border-color:#9a7bff}
+  .docs details{width:100%}
+  .docs summary{cursor:pointer;color:var(--mut);font-size:12px;margin-top:6px}
+  .docs embed{width:100%;height:460px;border:1px solid var(--line);border-radius:8px;margin-top:8px;background:#fff}
+  /* Zeichenfeld */
+  .draw{margin-top:12px;border:1px solid #2a3b4d;border-radius:10px;overflow:hidden;background:#0b121a}
+  .draw-tools{display:flex;align-items:center;gap:6px;padding:6px 8px;background:#11202e;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .draw-tools button{height:32px;min-width:32px;padding:0 7px;border-radius:8px;border:1px solid var(--line);background:#1a2735;color:var(--tx);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;gap:5px}
+  .draw-tools button:hover{border-color:var(--acc)}
+  .draw-tools button.on{background:var(--acc);color:#04121f;border-color:var(--acc)}
+  .draw-tools .send{margin-left:auto;background:var(--acc);color:#04121f;font-weight:700;border-color:var(--acc);padding:0 13px}
+  .draw-tools .cols{display:flex;gap:5px;margin:0 4px}
+  .draw-tools .sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid #0006}
+  .draw-stage{resize:vertical;overflow:hidden;height:240px;min-height:150px}
+  .draw-cv{display:block;width:100%;height:100%;background:#0e1620;touch-action:none;cursor:crosshair}
+  .draw-status{font-size:11.5px;color:var(--acc);padding:5px 11px;min-height:14px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Solve-Canvas · Antriebsstrang Becherwerk</h1>
+  <span class="sub">Modul 3 · LS 3 · Team „Gear"</span>
+  <span class="live"><span class="dot"></span>Live</span>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="card">
+      <h2>Rahmendaten &amp; Vorgaben</h2>
+      <div class="leg">
+        <div class="grp">Förderung</div>
+        <div class="row"><span class="k">Förderleistung</span><span class="val">\(\dot V=60\,\tfrac{\text{m}^3}{\text{h}}\)</span></div>
+        <div class="row"><span class="k">Dichte max.</span><span class="val">\(\rho=1800\,\tfrac{\text{kg}}{\text{m}^3}\)</span></div>
+        <div class="row"><span class="k">max. Geschw.</span><span class="val">\(v_{\max}=2\,\tfrac{\text{m}}{\text{s}}\)</span></div>
+        <div class="row"><span class="k">Becherabstand</span><span class="val">\(a=500\,\text{mm}\)</span></div>
+        <div class="row"><span class="k">Förderhöhe</span><span class="val">\(h\approx15\,\text{m}\)</span></div>
+        <div class="row"><span class="k">Betriebsdauer</span><span class="val">12 h/Tag</span></div>
+        <div class="row"><span class="k">Zuschlag</span><span class="val">+10 %</span></div>
+        <div class="grp">Ergebnisse bisher</div>
+        <div class="row"><span class="k">Becher</span><span class="val">4,75 L</span></div>
+        <div class="row"><span class="k">Geschw. \(v\)</span><span class="val">1,75 m/s</span></div>
+        <div class="row"><span class="k">\(P_{\text{erf}}\)</span><span class="val">4,86 kW</span></div>
+        <div class="row"><span class="k">\(\eta_{\text{ges}}\)</span><span class="val">0,85</span></div>
+        <div class="row"><span class="k">Motor</span><span class="val">DRN132M4 · 7,5 kW</span></div>
+        <div class="row"><span class="k">\(n_{\text{Mot}}\)</span><span class="val">1468 1/min</span></div>
+        <div class="grp">Mechanik</div>
+        <div class="row"><span class="k">Becherkette</span><span class="val">\(m'=10{,}25\,\tfrac{\text{kg}}{\text{m}}\)</span></div>
+        <div class="row"><span class="k">Zahnkranz-Ø</span><span class="val">\(D\approx630\,\text{mm}\)</span></div>
+        <div class="row"><span class="k">Kettentrieb</span><span class="val">\(a_K{\approx}560\), \(i_K{=}1..2\)</span></div>
+        <div class="row"><span class="k">Stirnrad</span><span class="val">2-st., \(i{\le}6\), \(x{=}0\)</span></div>
+        <div class="row"><span class="k">Wellen-Ø</span><span class="val">60 mm</span></div>
+        <div class="row"><span class="k">Wälzlager</span><span class="val">6014-2RSR</span></div>
+        <div class="row"><span class="k">\(C_r\) / \(C_{0r}\)</span><span class="val">40500 / 31000 N</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Nachschlagen</h2>
+      <div class="docs" style="flex-direction:column">
+        <a href="kurzreferenz.pdf" target="_blank">📘 Kurzreferenz (63 S.)</a>
+        <a href="Lernsituationsskript.pdf" target="_blank">📄 Lernsituationsskript</a>
+      </div>
+    </div>
+  </aside>
+
+  <section>
+    <div class="card">
+      <h2>Fortschritt — Vollständige Handlung</h2>
+      <div class="steps">
+        <div class="step"><div class="badge b-done">A</div><div class="t"><b>Elevatorbecher</b><span>4,75 L · v = 1,75 m/s</span></div><div class="st" style="color:var(--done)">erledigt</div></div>
+        <div class="step"><div class="badge b-done">B</div><div class="t"><b>Antriebsleistung</b><span>P_erf ≈ 4,86 kW</span></div><div class="st" style="color:var(--done)">erledigt</div></div>
+        <div class="step"><div class="badge b-done">C</div><div class="t"><b>Antriebsmotor</b><span>DRN132M4 · 7,5 kW</span></div><div class="st" style="color:var(--done)">erledigt</div></div>
+        <div class="step active"><div class="badge b-work">D</div><div class="t"><b>Übersetzungen + Zähnezahlen</b><span>Aufteilung Gesamt-i, Skizze</span></div><div class="st" style="color:var(--work)">in Arbeit</div></div>
+        <div class="step"><div class="badge b-open">E</div><div class="t"><b>Stirnrad Stufe 1</b><span>Modul + Zahnfuß/-flanke</span></div><div class="st">offen</div></div>
+        <div class="step"><div class="badge b-open">F</div><div class="t"><b>Kettentrieb</b><span>Größe + Achsabstand</span></div><div class="st">offen</div></div>
+        <div class="step"><div class="badge b-open">G</div><div class="t"><b>Gleitlager Zwischenwelle</b><span>Werkstoff + Ölversorgung</span></div><div class="st">offen</div></div>
+        <div class="step"><div class="badge b-open">H</div><div class="t"><b>Wälzlager Hauptwelle</b><span>Lebensdauer</span></div><div class="st">offen</div></div>
+        <div class="step"><div class="badge b-open">I</div><div class="t"><b>Kupplung</b><span>Typ + Moment + Skizze</span></div><div class="st">offen</div></div>
+      </div>
+    </div>
+
+    <div class="work-area">
+
+      <!-- A -->
+      <div class="card done" id="A">
+        <h2>A — Elevatorbecher auswählen <span class="pill" style="color:var(--done);border-color:var(--done)">erledigt</span></h2>
+        <div class="docs">
+          <a href="6_Datenblatt_Elevatorbecher.pdf" target="_blank">📄 Datenblatt Elevatorbecher</a>
+          <a href="Skizze_Becherwerk.pdf" target="_blank">📄 Skizze Becherwerk</a>
+        </div>
+        <div class="ansatz"><div class="lab">Ansatz</div>
+          $$\dot V=\frac{v}{a}\cdot V_{\text{Becher}}\;\Longleftrightarrow\;V_L=\frac{\dot V}{v\cdot 7{,}2}$$</div>
+        <div class="res"><div class="lab">Ergebnis A</div>
+          <p style="margin:.4em 0 0"><b>Becher 4,75 L</b> (DIN 15234, tief) · \(v=\dfrac{60}{4{,}75\cdot7{,}2}=1{,}75\,\text{m/s}\)</p>
+          <table class="dat"><tr><th>b</th><th>a</th><th>h₁</th><th>h₂</th><th>r</th><th>Füllinhalt</th></tr>
+            <tr><td>315 mm</td><td>180 mm</td><td>224 mm</td><td>118 mm</td><td>56 mm</td><td>4,75 L</td></tr></table>
+        </div>
+        <h3>Grafische Auswahl — Volumenstrom-Diagramm (Becherabstand 500 mm)</h3>
+        <div style="background:#0c141d;border:1px solid var(--line);border-radius:10px;padding:12px 8px">
+          <svg viewBox="0 0 560 352" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
+            <g stroke="#24303d" stroke-width="1">
+              <line x1="150" y1="20" x2="150" y2="320"/><line x1="250" y1="20" x2="250" y2="320"/>
+              <line x1="350" y1="20" x2="350" y2="320"/><line x1="450" y1="20" x2="450" y2="320"/>
+              <line x1="50" y1="260" x2="500" y2="260"/><line x1="50" y1="200" x2="500" y2="200"/>
+              <line x1="50" y1="140" x2="500" y2="140"/><line x1="50" y1="80" x2="500" y2="80"/><line x1="50" y1="20" x2="500" y2="20"/></g>
+            <g stroke="#5a6b7b" stroke-width="1.5"><line x1="50" y1="20" x2="50" y2="320"/><line x1="50" y1="320" x2="512" y2="320"/></g>
+            <g fill="#8aa0b4" font-size="11">
+              <text x="50" y="335" text-anchor="middle">0</text><text x="150" y="335" text-anchor="middle">0,5</text>
+              <text x="250" y="335" text-anchor="middle">1,0</text><text x="350" y="335" text-anchor="middle">1,5</text>
+              <text x="450" y="335" text-anchor="middle">2,0</text>
+              <text x="281" y="349" text-anchor="middle" fill="#cfd9e3">Geschwindigkeit Becherwerk [m/s]</text>
+              <text x="44" y="324" text-anchor="end">0</text><text x="44" y="264" text-anchor="end">20</text>
+              <text x="44" y="204" text-anchor="end">40</text><text x="44" y="144" text-anchor="end">60</text>
+              <text x="44" y="84" text-anchor="end">80</text><text x="44" y="24" text-anchor="end">100</text>
+              <text x="13" y="172" text-anchor="middle" fill="#cfd9e3" transform="rotate(-90 13 172)">Volumenstrom [m³/h]</text></g>
+            <g stroke="#56708a" stroke-width="1.3" fill="#7f93a6" font-size="10">
+              <line x1="50" y1="320" x2="500" y2="247"/><text x="505" y="249">1,5</text>
+              <line x1="50" y1="320" x2="500" y2="205"/><text x="505" y="207">2,36</text>
+              <line x1="50" y1="320" x2="500" y2="174"/><text x="505" y="176">3</text>
+              <line x1="50" y1="320" x2="500" y2="138"/><text x="505" y="140">3,75</text>
+              <line x1="50" y1="320" x2="500" y2="28"/><text x="505" y="30">6</text>
+              <line x1="50" y1="320" x2="342" y2="20"/><text x="332" y="16">9,5</text>
+              <line x1="50" y1="320" x2="235" y2="20"/><text x="225" y="16">15</text>
+              <line x1="50" y1="320" x2="168" y2="20"/><text x="158" y="16">23,6</text></g>
+            <line x1="50" y1="320" x2="500" y2="89" stroke="#ffd14a" stroke-width="2.6"/>
+            <text x="505" y="91" fill="#ffd14a" font-size="11" font-weight="700">4,75 L</text>
+            <g stroke="#ff5d5d" stroke-width="2"><line x1="50" y1="140" x2="400" y2="140"/><line x1="400" y1="140" x2="400" y2="320"/></g>
+            <polygon points="400,140 390,135 390,145" fill="#ff5d5d"/><polygon points="400,320 395,310 405,310" fill="#ff5d5d"/>
+            <circle cx="400" cy="140" r="4.5" fill="#ff5d5d"/>
+            <g font-size="11.5" font-weight="700"><text x="220" y="133" fill="#ff8a8a" text-anchor="middle">60 m³/h</text>
+              <text x="400" y="346" fill="#ff8a8a" text-anchor="middle">1,75 m/s</text></g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- B -->
+      <div class="card done" id="B">
+        <h2>B — Antriebsleistung ermitteln <span class="pill" style="color:var(--done);border-color:var(--done)">erledigt</span></h2>
+        <div class="docs">
+          <a href="Skizze_Becherwerk.pdf" target="_blank">📄 Skizze Becherwerk (h ≈ 15 m)</a>
+          <a class="ref" href="kurzreferenz.pdf#page=65" target="_blank">📘 Kurzreferenz S. 65 — Energie/Leistung</a>
+        </div>
+        <div class="ansatz"><div class="lab">Ansatz (Massenstrom — Becher/Kette heben sich auf)</div>
+          $$\dot m=\dot V\cdot\rho=30\,\tfrac{\text{kg}}{\text{s}}\qquad P_{\text{Hub}}=\dot m\,g\,h\qquad P_{\text{erf}}=P_{\text{Hub}}\cdot1{,}1$$</div>
+        <div class="res"><div class="lab">Ergebnis B</div>
+          <p style="margin:.4em 0 0">\(P_{\text{Hub}}=30\cdot9{,}81\cdot15=4414{,}5\,\text{W}\approx4{,}41\,\text{kW}\)</p>
+          <p style="margin:.3em 0 0">\(P_{\text{erf}}=4{,}41\cdot1{,}1=\mathbf{4{,}86\,\text{kW}}\) (an der Becherwerkswelle)</p>
+        </div>
+      </div>
+
+      <!-- C -->
+      <div class="card done" id="C">
+        <h2>C — Antriebsmotor auswählen <span class="pill" style="color:var(--done);border-color:var(--done)">erledigt</span></h2>
+        <div class="docs">
+          <a href="4_Datenblatt_Antriebsmotor.pdf" target="_blank">📄 Datenblatt SEW DRN</a>
+          <a class="ref" href="kurzreferenz.pdf#page=72" target="_blank">📘 Kurzreferenz S. 72 — Asynchronmotoren</a>
+          <a class="ref" href="kurzreferenz.pdf#page=33" target="_blank">📘 S. 33 — Wirkungsgrad</a>
+        </div>
+        <div class="ansatz"><div class="lab">Ansatz</div>
+          $$\eta_{\text{ges}}=\eta_{\text{Verz.}}\cdot\eta_{\text{Kette}}\cdot\eta_{\text{Wälzl.}}\cdot\eta_{\text{Gleitl.}}\approx0{,}85\qquad P_{\text{Mot}}\ge\frac{P_{\text{erf}}}{\eta_{\text{ges}}}$$</div>
+        <div class="res"><div class="lab">Ergebnis C</div>
+          <p style="margin:.4em 0 0">\(P_{\text{Mot}}=\dfrac{4{,}86}{0{,}85}=5{,}72\,\text{kW}\) → 5,5 kW reicht nicht → <b>nächste Stufe 7,5 kW</b></p>
+          <table class="dat"><tr><th>Motor</th><th>\(P_N\)</th><th>\(n_N\)</th><th>\(M_N\)</th><th>\(\eta_{100}\)</th></tr>
+            <tr><td><b>SEW DRN132M4</b></td><td>7,5 kW</td><td>1468 1/min</td><td>49 Nm</td><td>90,4 %</td></tr></table>
+        </div>
+      </div>
+
+      <!-- D aktiv -->
+      <div class="card" id="D">
+        <h2>D — Übersetzungen &amp; Zähnezahlen <span class="pill">in Arbeit</span></h2>
+        <div class="docs">
+          <a href="2_Skizze_Stirnradgetriebe.pdf" target="_blank">📄 Skizze Stirnradgetriebe + Aufteilungsdiagramm</a>
+          <a href="3_Tabelle_Zahnradauswahl.pdf" target="_blank">📄 Tabelle Zahnradauswahl</a>
+          <a class="ref" href="kurzreferenz.pdf#page=42" target="_blank">📘 Kurzreferenz S. 42 — Zahnräder</a>
+        </div>
+        <div class="gg">
+          <div class="box geg"><div class="lab">Gegeben</div><ul>
+            <li>\(n_{\text{Mot}}=1468\,\text{1/min}\) (Eingang)</li>
+            <li>\(v=1{,}75\,\text{m/s}\), Zahnkranz-Ø \(D=630\,\text{mm}\)</li>
+            <li>Kettentrieb \(i_K=1\ldots2\)</li>
+            <li>2 Stirnradstufen, \(i\le6\)/Stufe, \(x=0\)</li>
+            <li>Zähnezahlen: 16,18,20,25,28,35,45,50,56,63,71,80,90,100</li>
+          </ul></div>
+          <div class="box ges"><div class="lab">Gesucht</div><ul>
+            <li>Hauptwellendrehzahl \(n_{\text{HW}}\)</li>
+            <li>Gesamtübersetzung \(i_{\text{ges}}\)</li>
+            <li>Aufteilung \(i_K,\,i_1,\,i_2\)</li>
+            <li>Zähnezahlen \(z_1\ldots z_4\)</li>
+            <li>schematische Getriebeskizze</li>
+          </ul></div>
+        </div>
+        <div class="ansatz"><div class="lab">Ansatz</div>
+          $$n_{\text{HW}}=\frac{v}{\pi\,D}\qquad i_{\text{ges}}=\frac{n_{\text{Mot}}}{n_{\text{HW}}}=i_1\cdot i_2\cdot i_K\qquad i=\frac{z_2}{z_1}$$</div>
+        <div class="q"><div class="lab">Erster Denkschritt</div>
+          <ol style="margin:.4em 0 0">
+            <li>Die Hauptkette läuft mit \(v=1{,}75\) m/s über den Zahnkranz \(D=630\) mm → \(n_{\text{HW}}\)? (Umfangsgeschw. \(=v\), Ergebnis in 1/min: ×60)</li>
+            <li>\(i_{\text{ges}}=n_{\text{Mot}}/n_{\text{HW}}\) bilden.</li>
+          </ol>
+          <p class="muted" style="margin:.5em 0 0;font-size:12.5px">Rechne \(n_{\text{HW}}\) und \(i_{\text{ges}}\) im Zeichenfeld → „An Claude senden".</p>
+        </div>
+        <div class="draw" data-task="D"></div>
+      </div>
+
+      <div class="card open" id="E"><h2>E — Stirnrad Stufe 1 <span class="pill">offen</span></h2></div>
+      <div class="card open" id="F"><h2>F — Kettentrieb <span class="pill">offen</span></h2></div>
+      <div class="card open" id="G"><h2>G — Gleitlager Zwischenwelle <span class="pill">offen</span></h2></div>
+      <div class="card open" id="H"><h2>H — Wälzlager Hauptwelle <span class="pill">offen</span></h2></div>
+      <div class="card open" id="I"><h2>I — Kupplung <span class="pill">offen</span></h2></div>
+    </div>
+
+    <div class="foot">Solve-Canvas · Zeichenfelder (Stift · Zoom/Pan · höhenverstellbar · an Claude senden) · Unterlagen + Kurzreferenz je Aufgabe</div>
+  </section>
+</div>
+
+<script>
+/* Live-Reload (flackerfrei) */
+window.addEventListener('load',()=>{const y=sessionStorage.getItem('sy');if(y)window.scrollTo(0,+y);});
+window.addEventListener('scroll',()=>sessionStorage.setItem('sy',window.scrollY),{passive:true});
+let lastMod=null;
+setInterval(async()=>{try{const r=await fetch(location.pathname,{method:'HEAD',cache:'no-store'});
+  const m=r.headers.get('Last-Modified');if(lastMod&&m&&m!==lastMod){location.reload();return;}if(m)lastMod=m;}catch(e){}},1500);
+
+/* Zeichenfeld: Stift · Zoom(Mausrad) · Pan(Hand) · höhenverstellbar · PNG an Claude */
+function setupDraw(el){
+  el.innerHTML=`<div class="draw-tools">
+      <button data-t="pen" title="Stift">🖊️</button>
+      <button data-t="marker" title="Marker">🖍️</button>
+      <button data-t="erase" title="Radierer">🧽</button>
+      <button data-t="hand" title="Verschieben (ziehen)">✋</button>
+      <button data-act="undo" title="Rückgängig (Strg+Z)">↶</button>
+      <button data-act="zoomout" title="Zoom −">−</button>
+      <button data-act="zoomin" title="Zoom +">+</button>
+      <button data-act="fit" title="Einpassen">⤢</button>
+      <span class="cols"></span>
+      <button data-act="send" class="send" title="Zeichnung als Bild an Claude">📤 An Claude senden</button>
+      <button data-act="clear" title="Löschen">🗑️</button>
+    </div>
+    <div class="draw-stage"><canvas class="draw-cv"></canvas></div>
+    <div class="draw-status" data-status>Stift/Maus zeichnet · Finger: 1 = verschieben, 2 = Zoom · Mausrad = Zoom · unten rechts ziehen = höher</div>`;
+  const cv=el.querySelector('.draw-cv'),ctx=cv.getContext('2d'),stage=el.querySelector('.draw-stage');
+  const task=el.dataset.task,key='draw_'+task,PW=1600,PH=900;
+  const COLORS=['#ffd14a','#ff5d5d','#5de1ff','#7fffc4','#e6edf3'];
+  let strokes=JSON.parse(localStorage.getItem(key)||'[]'),undoStack=[];
+  let tool='pen',color=COLORS[0],drawing=false,cur=null,panning=false,panLast=null,S=1,OX=0,OY=0;
+  const statusEl=el.querySelector('[data-status]'),status=t=>statusEl.textContent=t;
+  const save=()=>localStorage.setItem(key,JSON.stringify(strokes));
+  const snap=()=>{undoStack.push(JSON.stringify(strokes));if(undoStack.length>40)undoStack.shift();};
+  function fit(){const d=window.devicePixelRatio||1,r=cv.getBoundingClientRect();
+    cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);
+    S=Math.min(r.width/PW,r.height/PH);OX=(r.width-PW*S)/2;OY=(r.height-PH*S)/2;redraw();}
+  const P2C=(x,y)=>[OX+x*S,OY+y*S],C2P=(x,y)=>[(x-OX)/S,(y-OY)/S];
+  function redraw(){const r=cv.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
+    const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle='#0e1620';ctx.fillRect(px,py,PW*S,PH*S);
+    ctx.strokeStyle='#26333f';ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
+    for(const st of strokes)paint(st,ctx,P2C,S);}
+  function paint(st,c,map,sc){if(st.points.length<2)return;c.save();c.lineCap='round';c.lineJoin='round';
+    c.strokeStyle=st.color;c.globalAlpha=st.tool==='marker'?0.35:1;
+    for(let i=1;i<st.points.length;i++){const a=st.points[i-1],b=st.points[i],[ax,ay]=map(a.x,a.y),[bx,by]=map(b.x,b.y);
+      c.beginPath();c.lineWidth=(st.tool==='marker'?16:2.4)*(0.5+(b.p||0.5))*sc;c.moveTo(ax,ay);c.lineTo(bx,by);c.stroke();}c.restore();}
+  const pos=e=>{const r=cv.getBoundingClientRect(),[x,y]=C2P(e.clientX-r.left,e.clientY-r.top);return{x,y,p:e.pressure||0.5};};
+  const eff=e=>(e.pointerType==='eraser'||(e.buttons&32)||(e.pointerType==='pen'&&(e.buttons&2)))?'erase':tool;
+  function erase(p){const R=22;let ch=false;strokes=strokes.filter(st=>{const h=st.points.some(q=>Math.hypot(q.x-p.x,q.y-p.y)<R);if(h)ch=true;return!h;});if(ch){redraw();save();}}
+  // Finger zeichnen NICHT: 1 Finger = verschieben, 2 Finger = Zoom. Nur Stift/Maus zeichnet.
+  let touches=new Map(),tprev=null;
+  const tinfo=()=>{const p=[...touches.values()];if(!p.length)return null;
+    if(p.length===1)return{cx:p[0].x,cy:p[0].y,dist:0};
+    return{cx:(p[0].x+p[1].x)/2,cy:(p[0].y+p[1].y)/2,dist:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)};};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);
+    if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});tprev=tinfo();return;}
+    const t=eff(e);if(t==='hand'||e.button===1){panning=true;panLast={x:e.clientX,y:e.clientY};return;}
+    const p=pos(e);drawing=true;if(t==='erase'){snap();erase(p);return;}snap();cur={tool:t,color,points:[p]};strokes.push(cur);redraw();});
+  cv.addEventListener('pointermove',e=>{
+    if(e.pointerType==='touch'){if(!touches.has(e.pointerId))return;e.preventDefault();
+      touches.set(e.pointerId,{x:e.clientX,y:e.clientY});const ti=tinfo();
+      if(tprev){const r=cv.getBoundingClientRect();OX+=ti.cx-tprev.cx;OY+=ti.cy-tprev.cy;
+        if(tprev.dist>0&&ti.dist>0){const f=ti.dist/tprev.dist,mx=ti.cx-r.left,my=ti.cy-r.top;OX=mx-(mx-OX)*f;OY=my-(my-OY)*f;S*=f;}
+        redraw();}tprev=ti;return;}
+    if(panning){OX+=e.clientX-panLast.x;OY+=e.clientY-panLast.y;panLast={x:e.clientX,y:e.clientY};redraw();return;}
+    if(!drawing)return;e.preventDefault();const t=eff(e),p=pos(e);if(t==='erase'){erase(p);return;}if(cur){cur.points.push(p);redraw();}});
+  const end=e=>{if(e&&e.pointerType==='touch'){touches.delete(e.pointerId);tprev=tinfo();return;}
+    if(panning){panning=false;return;}if(drawing){drawing=false;cur=null;save();}};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+  cv.addEventListener('contextmenu',e=>e.preventDefault());
+  cv.addEventListener('wheel',e=>{e.preventDefault();const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,f=e.deltaY<0?1.12:0.893;
+    OX=mx-(mx-OX)*f;OY=my-(my-OY)*f;S*=f;redraw();},{passive:false});
+  function zoom(f){const r=cv.getBoundingClientRect(),mx=r.width/2,my=r.height/2;OX=mx-(mx-OX)*f;OY=my-(my-OY)*f;S*=f;redraw();}
+  function setTool(t){tool=t;el.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));cv.style.cursor=t==='hand'?'grab':'crosshair';}
+  el.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+  el.querySelector('[data-act=undo]').onclick=()=>{if(undoStack.length){strokes=JSON.parse(undoStack.pop());redraw();save();status('rückgängig');}};
+  el.querySelector('[data-act=clear]').onclick=()=>{snap();strokes=[];redraw();save();status('gelöscht');};
+  el.querySelector('[data-act=fit]').onclick=()=>fit();
+  el.querySelector('[data-act=zoomin]').onclick=()=>zoom(1.2);
+  el.querySelector('[data-act=zoomout]').onclick=()=>zoom(0.83);
+  function exportPNG(){const oc=document.createElement('canvas');oc.width=PW;oc.height=PH;const o=oc.getContext('2d');
+    o.fillStyle='#0e1620';o.fillRect(0,0,PW,PH);for(const st of strokes)paint(st,o,(x,y)=>[x,y],1);return oc.toDataURL('image/png');}
+  el.querySelector('[data-act=send]').onclick=async()=>{
+    if(!strokes.length){status('⚠ noch nichts gezeichnet');return;}
+    status('sende…');try{await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,image:exportPNG()})});
+      status('✓ gesendet — sag im Chat „'+task+' gesendet", dann werte ich es aus');}
+    catch(e){status('⚠ Senden fehlgeschlagen: '+e.message);}};
+  const cw=el.querySelector('.cols');
+  COLORS.forEach((c,i)=>{const d=document.createElement('span');d.className='sw';d.style.background=c;
+    d.onclick=()=>{color=c;cw.querySelectorAll('.sw').forEach(x=>x.style.outline='');d.style.outline='2px solid #fff';};cw.appendChild(d);if(!i)d.style.outline='2px solid #fff';});
+  setTool('pen');new ResizeObserver(()=>fit()).observe(stage);fit();
+}
+document.querySelectorAll('.draw').forEach(setupDraw);
+</script>
+</body>
+</html>

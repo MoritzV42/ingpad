@@ -1,0 +1,32 @@
+{
+  "_beschreibung": "Index der Kurzreferenz (Modul 2, 63 S.) — Seitenverweise je Themenbereich, damit Solve-Canvas Studenten zur richtigen Seite leitet.",
+  "datei": "kurzreferenz.pdf",
+  "seiten_gesamt": 63,
+  "themen": {
+    "technische_mechanik": {"seite": 3, "kapitel": "1"},
+    "kinetik": {"seite": 4, "kapitel": "1.1"},
+    "schraubenverbindungen": {"seite": 17, "kapitel": "4"},
+    "wellen_naben": {"seite": 23, "kapitel": "5"},
+    "lager_kupplungen_getriebe_allgemein": {"seite": 33, "kapitel": "7.1"},
+    "waelzlager": {"seite": 35, "kapitel": "7.2"},
+    "gleitlager": {"seite": 38, "kapitel": "7.3"},
+    "bremsen_rekuperation": {"seite": 40, "kapitel": "7.4"},
+    "zahnraeder": {"seite": 42, "kapitel": "7.5"},
+    "kettentrieb": {"seite": 50, "kapitel": "7.6"},
+    "schneckentrieb": {"seite": 52, "kapitel": "7.7"},
+    "stroemungsmaschinen_energie": {"seite": 65, "kapitel": "9"},
+    "asynchronmotoren": {"seite": 72, "kapitel": "12.2"},
+    "regelungstechnik": {"seite": 75, "kapitel": "13"}
+  },
+  "aufgaben_zuordnung": {
+    "A": [],
+    "B": [{"thema": "Energie/Leistung", "seite": 65}],
+    "C": [{"thema": "Asynchronmotoren", "seite": 72}, {"thema": "Wirkungsgrad Getriebe", "seite": 33}],
+    "D": [{"thema": "Zahnräder: Übersetzung/Drehzahl", "seite": 42}],
+    "E": [{"thema": "Zahnräder: Modul + Zahnfuß/-flanke", "seite": 42}],
+    "F": [{"thema": "Kettentrieb", "seite": 50}],
+    "G": [{"thema": "Gleitlager", "seite": 38}],
+    "H": [{"thema": "Wälzlager", "seite": 35}],
+    "I": [{"thema": "Kupplungen", "seite": 33}]
+  }
+}
