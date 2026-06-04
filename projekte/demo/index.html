@@ -8,11 +8,21 @@
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
 <style>
   :root{--bg:#0f141a;--card:#18212c;--card2:#1e2935;--line:#2c3a4a;--tx:#e6edf3;--mut:#8aa0b4;
-        --acc:#3b9dff;--done:#2ecc71;--work:#ffb02e;--open:#5a6b7b;--red:#ff5d5d;}
+        --acc:#3b9dff;--done:#2ecc71;--work:#ffb02e;--open:#5a6b7b;--red:#ff5d5d;
+        /* Zeichenfeld-„Papier" (Canvas-Hintergrund) + Rahmen, themebar */
+        --paper:#0e1620;--paper-line:#26333f;
+        /* Diagramm-/Skizzen-Flaechen (SVG-Container) */
+        --fig-bg:#0c141d;--fig-bg2:#0c141d;}
+  /* === Light-Mode: heller Hintergrund, dunkle Schrift, gleiche Akzente === */
+  body.light{--bg:#f4f6f9;--card:#ffffff;--card2:#eef2f6;--line:#d2dae3;--tx:#1b2530;--mut:#5a6b7b;
+        --acc:#1769c4;--done:#1f9d57;--work:#c77a06;--open:#7a8a99;--red:#d63b3b;
+        --paper:#fbfcfe;--paper-line:#c4d0dc;
+        --fig-bg:#f7f9fc;--fig-bg2:#f7f9fc;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--tx);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.55;font-size:15px}
   header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#13202f,#0f141a);
          border-bottom:1px solid var(--line);padding:12px 24px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  body.light header{background:linear-gradient(180deg,#e7eef6,#f4f6f9)}
   header h1{font-size:17px;margin:0;font-weight:600}
   header .sub{color:var(--mut);font-size:12.5px}
   header .live{margin-left:auto;font-size:12px;color:var(--done);display:flex;align-items:center;gap:6px}
@@ -54,7 +64,7 @@
   .q .lab{color:var(--acc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
   .res{background:#0c1c12;border:1px solid #1d5a36;border-radius:10px;padding:10px 16px;margin:12px 0}
   .res .lab{color:var(--done);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
-  code{background:#0c1620;padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:13px}
+  code{background:var(--paper);padding:1px 6px;border-radius:5px;border:1px solid var(--line);font-size:13px}
   .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--mut);margin-left:6px}
   table.dat{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
   table.dat th,table.dat td{text-align:left;padding:5px 9px;border-bottom:1px solid var(--line)}
@@ -82,8 +92,26 @@
   .draw-tools .cols{display:flex;gap:5px;margin:0 4px}
   .draw-tools .sw{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid #0006}
   .draw-stage{resize:vertical;overflow:hidden;height:240px;min-height:150px}
-  .draw-cv{display:block;width:100%;height:100%;background:#0e1620;touch-action:none;cursor:crosshair}
+  .draw-cv{display:block;width:100%;height:100%;background:var(--paper);touch-action:none;cursor:crosshair}
   .draw-status{font-size:11.5px;color:var(--acc);padding:5px 11px;min-height:14px;border-top:1px solid var(--line)}
+  /* === Light-Mode-Feinschliff fuer dunkel hartkodierte Flaechen === */
+  body.light .draw{background:var(--card2);border-color:var(--line)}
+  body.light .draw-tools{background:var(--card2)}
+  body.light .draw-tools button{background:#fff}
+  body.light .step.active{background:#e8f1fc}
+  body.light .ansatz{background:#eef5fc;border-color:#bcd6ef}
+  body.light .ansatz .lab{color:var(--acc)}
+  body.light .q{background:#eaf3fb;border-color:#b9d6ee}
+  body.light .res{background:#eaf7ef;border-color:#bfe3cd}
+  body.light .docs a{background:#eef4fa;border-color:#cdd9e6;color:#1b3854}
+  body.light .docs a:hover{color:#0b2740}
+  body.light .docs a.ref{background:#f1edfa;border-color:#d6c9ef;color:#4a3a73}
+  body.light .docs embed{background:#fff}
+  body.light .leg .grp{color:#7a8a99}
+  /* SVG-Prinzipskizze: die hellen Konstruktions-Linien (#e6edf3) im Light-Mode
+     abdunkeln, damit sie auf hellem Figur-Hintergrund lesbar bleiben. */
+  body.light .figsvg line[stroke="#e6edf3"]{stroke:#1b2530}
+  body.light .figsvg line[stroke="#5a6b7b"]{stroke:#46586a}
 </style>
 </head>
 <body>
@@ -157,8 +185,8 @@
             <tr><td><b>Haltekraft \(F_H\)</b></td><td><b>2133 N</b></td></tr></table>
         </div>
         <h3>Prinzipskizze — einfacher Winkelhebel an der Wand</h3>
-        <div style="background:#0c141d;border:1px solid var(--line);border-radius:10px;padding:12px 8px">
-          <svg viewBox="0 0 560 300" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
+        <div style="background:var(--fig-bg);border:1px solid var(--line);border-radius:10px;padding:12px 8px">
+          <svg class="figsvg" viewBox="0 0 560 300" style="width:100%;height:auto;font-family:'Segoe UI',sans-serif">
             <!-- Wand -->
             <line x1="80" y1="20" x2="80" y2="280" stroke="#5a6b7b" stroke-width="3"/>
             <g stroke="#3a4a5a" stroke-width="1">
@@ -216,6 +244,8 @@
           <p class="muted" style="margin:.5em 0 0;font-size:12.5px">Rechne \(M_b\), \(W\) und \(\sigma_b\) im Zeichenfeld → „An Claude senden".</p>
         </div>
         <div class="draw" data-task="B" data-default-img="beispiel-skizze.png"></div>
+        <h3>Anhaenge zu diesem Schritt</h3>
+        <div class="attach" data-task="B"></div>
       </div>
 
       <!-- C offen -->
@@ -280,10 +310,11 @@ function setupDraw(el){
     cv.width=r.width*d;cv.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);
     S=Math.min(r.width/PW,r.height/PH);OX=(r.width-PW*S)/2;OY=(r.height-PH*S)/2;redraw();}
   const P2C=(x,y)=>[OX+x*S,OY+y*S],C2P=(x,y)=>[(x-OX)/S,(y-OY)/S];
+  const cssVar=(n,fb)=>{const v=getComputedStyle(document.body).getPropertyValue(n).trim();return v||fb;};
   function redraw(){const r=cv.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
-    const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle='#0e1620';ctx.fillRect(px,py,PW*S,PH*S);
+    const[px,py]=P2C(0,0);ctx.save();ctx.fillStyle=cssVar('--paper','#0e1620');ctx.fillRect(px,py,PW*S,PH*S);
     if(dimg&&dimg.complete&&!strokes.length)ctx.drawImage(dimg,px,py,PW*S,PH*S);
-    ctx.strokeStyle='#26333f';ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
+    ctx.strokeStyle=cssVar('--paper-line','#26333f');ctx.strokeRect(px,py,PW*S,PH*S);ctx.restore();
     for(const st of strokes)paint(st,ctx,P2C,S);}
   function paint(st,c,map,sc){if(st.points.length<2)return;c.save();c.lineCap='round';c.lineJoin='round';
     c.strokeStyle=st.color;c.globalAlpha=st.tool==='marker'?0.35:1;
@@ -323,8 +354,13 @@ function setupDraw(el){
   el.querySelector('[data-act=fit]').onclick=()=>fit();
   el.querySelector('[data-act=zoomin]').onclick=()=>zoom(1.2);
   el.querySelector('[data-act=zoomout]').onclick=()=>zoom(0.83);
+  // Export bewusst mit fixem dunklem Papier (#0e1620): die Standard-Stiftfarben
+  // sind helle Toene, so bleibt das an Claude gesendete Bild immer gut lesbar —
+  // unabhaengig davon, ob gerade Light- oder Dark-Mode aktiv ist.
   function exportPNG(){const oc=document.createElement('canvas');oc.width=PW;oc.height=PH;const o=oc.getContext('2d');
     o.fillStyle='#0e1620';o.fillRect(0,0,PW,PH);for(const st of strokes)paint(st,o,(x,y)=>[x,y],1);return oc.toDataURL('image/png');}
+  // Bei Theme-Wechsel (theme.js feuert 'ingpad-theme') Papier neu zeichnen.
+  window.addEventListener('ingpad-theme',()=>redraw());
   el.querySelector('[data-act=send]').onclick=async()=>{
     if(!strokes.length){status('⚠ noch nichts gezeichnet');return;}
     status('sende…');try{await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task,image:exportPNG()})});
@@ -336,6 +372,14 @@ function setupDraw(el){
   setTool('pen');new ResizeObserver(()=>fit()).observe(stage);fit();
 }
 document.querySelectorAll('.draw').forEach(setupDraw);
+</script>
+
+<!-- Wiederverwendbare Engine-Komponenten (aus /app/) -->
+<script src="/app/theme.js"></script>
+<script src="/app/attachments.js"></script>
+<script>
+  /* Anhang-UI fuer alle .attach-Container initialisieren */
+  document.querySelectorAll('.attach').forEach(setupAttachments);
 </script>
 </body>
 </html>
