@@ -11,6 +11,9 @@ __pycache__/
 *.pyc
 _site/
 
+# Interne Strategie/Architektur — NICHT im oeffentlichen Repo
+ARCHITECTURE_HOSTED.md
+
 # OS / editor
 Thumbs.db
 .DS_Store
