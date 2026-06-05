@@ -1,5 +1,7 @@
 # ingpad
 
+![ingpad](docs/banner.png)
+
 > The engineer's scratch pad — solve a technical exercise on one canvas: framework data, step-by-step **Given / Sought / Approach**, stylus sketches and an AI tutor, side by side.
 
 ![ingpad overview](docs/hero.png)
