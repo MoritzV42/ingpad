@@ -9,6 +9,7 @@ scratchpad.json
 submit_*.png
 __pycache__/
 *.pyc
+_site/
 
 # OS / editor
 Thumbs.db
