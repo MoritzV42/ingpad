@@ -2,6 +2,8 @@
 
 ![ingpad](docs/banner.png)
 
+**▶ [Live-Demo ausprobieren](https://moritzv42.github.io/ingpad/)** — läuft direkt im Browser, kein Setup.
+
 > The engineer's scratch pad — solve a technical exercise on one canvas: framework data, step-by-step **Given / Sought / Approach**, stylus sketches and an AI tutor, side by side.
 
 ![ingpad overview](docs/hero.png)

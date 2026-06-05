@@ -66,6 +66,19 @@ def main():
         html = f.read()
     # absolute /app/-Pfade -> relativ
     html = html.replace('src="/app/', 'src="app/')
+    # Social-Preview-Meta (Link-Vorschau im Forum / Messenger)
+    base = "https://moritzv42.github.io/ingpad/"
+    meta = (
+        '<meta property="og:title" content="ingpad — Aufgaben lösen auf einem Canvas">\n'
+        '<meta property="og:description" content="AI-first Lern-Workbench: Aufgabe rein, '
+        'Gegeben/Gesucht/Ansatz-Canvas + Zeichenfelder + KI-Tutor, Ausarbeitung raus. Live-Demo.">\n'
+        '<meta property="og:image" content="' + base + 'banner.png">\n'
+        '<meta property="og:url" content="' + base + '">\n'
+        '<meta property="og:type" content="website">\n'
+        '<meta name="twitter:card" content="summary_large_image">\n'
+        '<link rel="icon" href="favicon.png">\n'
+    )
+    html = html.replace("</title>", "</title>\n" + meta, 1)
     # Shim direkt vor den App-Komponenten laden
     html = re.sub(r'(<script src="app/theme\.js">)',
                   '<script src="static-shim.js"></script>\n\\1', html, count=1)
@@ -81,6 +94,13 @@ def main():
     skizze = os.path.join(DEMO, "beispiel-skizze.png")
     if os.path.exists(skizze):
         shutil.copy(skizze, os.path.join(OUT, "beispiel-skizze.png"))
+    # Banner (Social-Preview) + Favicon
+    banner = os.path.join(ROOT, "docs", "banner.png")
+    if os.path.exists(banner):
+        shutil.copy(banner, os.path.join(OUT, "banner.png"))
+    favicon = os.path.join(ROOT, "docs", "favicon.png")
+    if os.path.exists(favicon):
+        shutil.copy(favicon, os.path.join(OUT, "favicon.png"))
     # GitHub-Pages: Jekyll aus, .nojekyll
     open(os.path.join(OUT, ".nojekyll"), "w").close()
 
