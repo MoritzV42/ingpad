@@ -19,6 +19,8 @@ import re
 import email
 import email.policy
 import urllib.parse
+import urllib.request
+import urllib.error
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJEKT = sys.argv[1] if len(sys.argv) > 1 else "becherwerk"
@@ -85,6 +87,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == "/api/attach":
             self._do_attach()
+            return
+        if self.path == "/api/chat":
+            self._do_chat()
             return
         if self.path != "/api/submit":
             self.send_error(404)
@@ -175,6 +180,50 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._json(200, {"ok": True, "gespeichert": rel})
         except Exception as e:
             self._json(500, {"ok": False, "fehler": str(e)})
+
+    def _do_chat(self):
+        """POST /api/chat — Proxy zu einem OpenAI-kompatiblen Chat-Backend.
+
+        Body: {endpoint, model, key, messages}. Der Server ruft
+        <endpoint>/chat/completions auf (Ollama, LM Studio, DeepSeek, OpenAI …)
+        und gibt {ok, text} zurueck. Proxy noetig, weil der Browser sonst an
+        CORS scheitert; der API-Key bleibt im lokalen Datenfluss (kein Logging).
+
+        Sicherheit: Dev-Server, an 127.0.0.1 gebunden — die Ziel-URL kommt vom
+        Frontend (SSRF-unkritisch lokal). Beim spaeteren Hosting einschraenken.
+        """
+        try:
+            n = int(self.headers.get("Content-Length", 0))
+            req = json.loads(self.rfile.read(n).decode("utf-8"))
+            endpoint = (req.get("endpoint") or "http://localhost:11434/v1").rstrip("/")
+            model = req.get("model") or "llama3.1"
+            key = req.get("key") or ""
+            messages = req.get("messages") or []
+
+            url = endpoint if endpoint.endswith("/chat/completions") else endpoint + "/chat/completions"
+            payload = json.dumps({"model": model, "messages": messages, "stream": False}).encode("utf-8")
+            headers = {"Content-Type": "application/json"}
+            if key:
+                headers["Authorization"] = "Bearer " + key
+
+            r = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+            with urllib.request.urlopen(r, timeout=120) as resp:
+                out = json.loads(resp.read().decode("utf-8"))
+            text = (out.get("choices", [{}])[0].get("message", {}) or {}).get("content", "")
+            self._json(200, {"ok": True, "text": text})
+        except urllib.error.HTTPError as e:
+            body = ""
+            try:
+                body = e.read().decode("utf-8", "replace")[:500]
+            except Exception:
+                pass
+            self._json(200, {"ok": False, "fehler": "Backend %s" % e.code,
+                             "hinweis": body or "Endpoint/Modell/Key pruefen."})
+        except urllib.error.URLError as e:
+            self._json(200, {"ok": False, "fehler": "Backend nicht erreichbar",
+                             "hinweis": "Laeuft das Modell? (z.B. `ollama serve`) — %s" % e.reason})
+        except Exception as e:
+            self._json(200, {"ok": False, "fehler": str(e)})
 
     def do_DELETE(self):
         """DELETE /api/attach?task=<id>&name=<datei> — entfernt einen Anhang."""
