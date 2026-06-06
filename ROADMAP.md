@@ -11,7 +11,7 @@ Status: MVP shipping.
       stylus-only drawing (finger pans, two fingers zoom), undo, "send to AI" (PNG)
 - [x] Local server (`server.py`, POST /api/submit receives PNG)
 - [x] Source-document links + formula-sheet page references per step (`kurzref_index.json`)
-- [x] MIT license, README, MARKETING, CI, copyright guard (no PDFs committed)
+- [x] AGPL-3.0 license, README, MARKETING, CI, copyright guard (no PDFs committed)
 - [ ] **Per-step file attachments** — attach your own constructions, tables, documents
       (CAD exports, spreadsheets, PDFs) to a step
 - [ ] Generic, non-copyrighted demo project (replace becherwerk for the public repo)

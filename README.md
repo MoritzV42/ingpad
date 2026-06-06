@@ -96,4 +96,8 @@ Then `python server.py <your-exercise>`.
 
 ## License
 
-[MIT](LICENSE) © Moritz Voigt · part of [Moritz Voigt — Open Source](https://moritzvoigt.infinityspace42.de)
+[AGPL-3.0](LICENSE) © Moritz Voigt · part of [Moritz Voigt — Open Source](https://moritzvoigt.infinityspace42.de)
+
+The code is free to use, study and modify. Under the AGPL, anyone who runs a
+**modified** version as a network service must publish their source under the
+same license. The copyright stays with the author.

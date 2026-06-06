@@ -25,8 +25,8 @@ verwandelt:
 Statt PDF + Taschenrechner + Zettel + PowerPoint getrennt: alles auf einer Flaeche.
 Sokratisch - die KI rechnet nicht einfach vor, sondern fragt und prueft.
 
-Open Source (MIT), laeuft lokal. Aufgaben-PDFs sind aus Copyright-Gruenden nicht
-enthalten - du bringst deine eigenen mit.
+Open Source (AGPL-3.0), laeuft lokal. Aufgaben-PDFs sind aus Copyright-Gruenden
+nicht enthalten - du bringst deine eigenen mit.
 
 Demo (Becherwerk-Antriebsstrang): [Loom]
 Code: https://github.com/MoritzV42/ingpad
@@ -51,7 +51,7 @@ and opens the next one. Formula-sheet pages are linked per topic.
 
 It's socratic on purpose - it asks and verifies instead of dumping the answer.
 
-MIT, runs locally, no exercise PDFs bundled (bring your own).
+AGPL-3.0, runs locally, no exercise PDFs bundled (bring your own).
 Demo + repo: https://github.com/MoritzV42/ingpad
 ```
 
@@ -66,7 +66,7 @@ Framework data pinned left · task split into steps · handwrite each step with 
 stylus · AI checks it, records the result, opens the next. Formula-sheet pages
 linked per topic.
 
-Socratic, not answer-dumping. MIT.
+Socratic, not answer-dumping. AGPL-3.0.
 github.com/MoritzV42/ingpad
 ```
 
