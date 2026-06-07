@@ -94,6 +94,18 @@ Then `python server.py <your-exercise>`.
 
 [ROADMAP.md](ROADMAP.md) — from this local tool to a hosted platform: drag&drop PDF input → auto-built canvas, automatic PowerPoint + calc-document export, a model-agnostic in-app AI chat (no terminal needed), per-step file attachments, dark/light mode, and login-gated sharing of solutions mapped to modules & exercises.
 
+
+<!-- PORTFOLIO-LINKS:START -->
+## More open-source tools by Moritz Voigt
+
+- **[secret-paste](https://github.com/MoritzV42/secret-paste)** — Paste API keys & tokens to your AI coding agent without ever putting them in the chat transcript. Local-only, cross-platform.
+- **[push-to-clip](https://github.com/MoritzV42/push-to-clip)** — Copy text, files, or piped output to your system clipboard, from one command, on any OS.
+- **[memoryball-studio](https://github.com/MoritzV42/memoryball-studio)** — Batch-prep a whole photo folder for the Memory Orb display ball: auto-cropped, face-aware, the right format — locally.
+- **[ingpad](https://github.com/MoritzV42/ingpad)** — The engineer's scratch pad: solve technical exercises on one canvas with per-step Given / Sought / Approach, stylus fields, and an AI tutor. *(this repo)*
+
+All MIT-licensed, free, built in public → **[moritzvoigt.infinityspace42.de](https://moritzvoigt.infinityspace42.de)**
+<!-- PORTFOLIO-LINKS:END -->
+
 ## License
 
 [AGPL-3.0](LICENSE) © Moritz Voigt · part of [Moritz Voigt — Open Source](https://moritzvoigt.infinityspace42.de)
