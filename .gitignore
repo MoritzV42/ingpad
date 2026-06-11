@@ -7,6 +7,7 @@ kurzref/
 # Runtime / generated
 scratchpad.json
 submit_*.png
+.ai-session
 __pycache__/
 *.pyc
 _site/

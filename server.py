@@ -14,6 +14,8 @@ import json
 import os
 import base64
 import datetime
+import shutil
+import subprocess
 import sys
 import re
 import email
@@ -21,6 +23,7 @@ import email.policy
 import urllib.parse
 import urllib.request
 import urllib.error
+import uuid
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PROJEKT = sys.argv[1] if len(sys.argv) > 1 else "becherwerk"
@@ -28,6 +31,105 @@ BASE = os.path.join(ROOT, "projekte", PROJEKT)
 PORT = int(os.environ.get("INGPAD_PORT", "8042"))
 SCRATCH = os.path.join(BASE, "scratchpad.json")
 ATTACH_DIR = os.path.join(BASE, "attachments")
+AI_SESSION_FILE = os.path.join(BASE, ".ai-session")
+AI_TIMEOUT = int(os.environ.get("INGPAD_AI_TIMEOUT", "120"))
+
+# Short tutor persona, prepended once per Claude session (first prompt only).
+TUTOR_SYSTEM_PROMPT = (
+    "You are the AI tutor inside ingpad, a learning workbench where engineering "
+    "students solve technical exercises step by step on a canvas. Act as a "
+    "socratic tutor: guide the student's own thinking, verify their approach, "
+    "recalculate steps, point to relevant formulas and standards — but never "
+    "hand out the complete solution to an unsolved step. Answer in the language "
+    "the user writes in (German with proper umlauts if they write German). "
+    "Keep answers compact and precise. Format formulas in LaTeX with \\( ... \\) "
+    "or $$ ... $$."
+)
+
+
+def _app_version():
+    """Best-effort app version from the first '## [x.y.z]' heading in CHANGELOG.md."""
+    try:
+        with open(os.path.join(ROOT, "CHANGELOG.md"), "r", encoding="utf-8") as f:
+            for line in f:
+                m = re.match(r"##\s*\[([^\]]+)\]", line)
+                if m:
+                    return m.group(1)
+    except Exception:
+        pass
+    return ""
+
+
+# Claude-CLI discovery is cached after the first successful probe; a negative
+# result is re-probed on every /api/ai/status call so a fresh install is picked
+# up without restarting the server.
+_claude_cache = {"path": None, "version": None}
+
+
+def _claude_cmd(path, args):
+    """Build an argv list for the claude CLI, Windows-shim aware.
+
+    shutil.which() on Windows may resolve to claude.exe / claude.cmd (both run
+    fine via CreateProcess without shell=True) or — worst case — claude.ps1,
+    which needs an explicit powershell wrapper.
+    """
+    if path.lower().endswith(".ps1"):
+        return ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                "-File", path] + args
+    return [path] + args
+
+
+def _find_claude():
+    """Locate the claude CLI and verify it actually runs. Returns (path, version)."""
+    if _claude_cache["path"]:
+        return _claude_cache["path"], _claude_cache["version"]
+    candidates = []
+    for name in ("claude", "claude.exe", "claude.cmd"):
+        p = shutil.which(name)
+        if p and p not in candidates:
+            candidates.append(p)
+    # Prefer real executables over PowerShell shims.
+    candidates.sort(key=lambda p: p.lower().endswith(".ps1"))
+    for p in candidates:
+        try:
+            r = subprocess.run(_claude_cmd(p, ["--version"]),
+                               capture_output=True, text=True, timeout=10,
+                               encoding="utf-8", errors="replace")
+            if r.returncode == 0:
+                _claude_cache["path"] = p
+                _claude_cache["version"] = (r.stdout or r.stderr or "").strip()
+                return p, _claude_cache["version"]
+        except Exception:
+            continue
+    return None, None
+
+
+def _load_ai_session():
+    """Return the stored Claude session id for this project, or None."""
+    try:
+        with open(AI_SESSION_FILE, "r", encoding="utf-8") as f:
+            sid = f.read().strip()
+        uuid.UUID(sid)  # validate format
+        return sid
+    except Exception:
+        return None
+
+
+def _save_ai_session(sid):
+    try:
+        with open(AI_SESSION_FILE, "w", encoding="utf-8") as f:
+            f.write(sid)
+    except Exception:
+        pass
+
+
+def _run_claude(path, prompt, session_args):
+    """One claude -p invocation; prompt goes via stdin (avoids Windows arg-length
+    and quoting issues with .cmd shims). Returns the CompletedProcess."""
+    cmd = _claude_cmd(path, ["-p", "--output-format", "json"] + session_args)
+    return subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+                          timeout=AI_TIMEOUT, cwd=BASE,
+                          encoding="utf-8", errors="replace")
 
 
 def _safe_name(name):
@@ -63,6 +165,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         """GET /api/attach?task=<id> -> Liste der Anhaenge; sonst statisch."""
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/ai/status":
+            # Is the claude CLI installed and runnable? (--version success is
+            # our "installed" proxy — no login probe, that would burn tokens.)
+            path, version = _find_claude()
+            self._json(200, {"claude": bool(path), "version": version or "",
+                             "app": _app_version(), "project": PROJEKT})
+            return
         if parsed.path == "/api/attach":
             try:
                 q = urllib.parse.parse_qs(parsed.query)
@@ -90,6 +199,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         if self.path == "/api/chat":
             self._do_chat()
+            return
+        if self.path == "/api/ai/ask":
+            self._do_ai_ask()
             return
         if self.path != "/api/submit":
             self.send_error(404)
@@ -181,13 +293,86 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self._json(500, {"ok": False, "fehler": str(e)})
 
+    def _do_ai_ask(self):
+        """POST /api/ai/ask — default AI backend: the Claude Code CLI.
+
+        Body: {message, context?}. Runs `claude -p --output-format json` as a
+        local subprocess; auth comes from the user's Claude subscription login
+        (~/.claude), no API key involved. Session persistence: one Claude
+        session per project — first call uses --session-id <uuid4> (stored in
+        projekte/<name>/.ai-session), later calls --resume <id>. The first
+        prompt of a session is prefixed with a short tutor system prompt.
+        Errors come back as JSON ({ok:false, fehler, hinweis}).
+        """
+        try:
+            n = int(self.headers.get("Content-Length", 0))
+            req = json.loads(self.rfile.read(n).decode("utf-8"))
+            message = (req.get("message") or "").strip()
+            context = (req.get("context") or "").strip()
+            if not message:
+                self._json(400, {"ok": False, "fehler": "message fehlt"})
+                return
+
+            path, _version = _find_claude()
+            if not path:
+                self._json(200, {"ok": False, "fehler": "claude-not-found",
+                                 "hinweis": "Claude Code CLI not found. Install it "
+                                            "(npm install -g @anthropic-ai/claude-code), "
+                                            "run `claude` once to log in, then restart ingpad."})
+                return
+
+            def build_prompt(new_session):
+                parts = []
+                if new_session:
+                    parts.append(TUTOR_SYSTEM_PROMPT)
+                if context:
+                    parts.append("Current state of the student's work canvas:\n" + context)
+                parts.append(message)
+                return "\n\n".join(parts)
+
+            session_id = _load_ai_session()
+            if session_id:
+                r = _run_claude(path, build_prompt(False), ["--resume", session_id])
+                if r.returncode != 0:
+                    # Stale/expired session — fall back to a fresh one.
+                    session_id = None
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                r = _run_claude(path, build_prompt(True), ["--session-id", session_id])
+
+            if r.returncode != 0:
+                err = (r.stderr or r.stdout or "").strip()[:500]
+                self._json(200, {"ok": False, "fehler": "claude exited with %d" % r.returncode,
+                                 "hinweis": err or "Is the CLI logged in? Run `claude` once."})
+                return
+
+            # claude -p --output-format json prints one JSON object with the
+            # reply in "result".
+            text = ""
+            try:
+                out = json.loads(r.stdout)
+                text = out.get("result", "") or ""
+            except Exception:
+                text = (r.stdout or "").strip()
+
+            _save_ai_session(session_id)
+            self._json(200, {"ok": True, "text": text})
+        except subprocess.TimeoutExpired:
+            self._json(200, {"ok": False, "fehler": "timeout",
+                             "hinweis": "Claude did not answer within %ds "
+                                        "(INGPAD_AI_TIMEOUT to change)." % AI_TIMEOUT})
+        except Exception as e:
+            self._json(200, {"ok": False, "fehler": str(e)})
+
     def _do_chat(self):
-        """POST /api/chat — Proxy zu einem OpenAI-kompatiblen Chat-Backend.
+        """POST /api/chat — fallback proxy to an OpenAI-compatible chat backend.
 
         Body: {endpoint, model, key, messages}. Der Server ruft
-        <endpoint>/chat/completions auf (Ollama, LM Studio, DeepSeek, OpenAI …)
-        und gibt {ok, text} zurueck. Proxy noetig, weil der Browser sonst an
-        CORS scheitert; der API-Key bleibt im lokalen Datenfluss (kein Logging).
+        <endpoint>/chat/completions auf (Anthropic, OpenRouter, OpenAI,
+        Mistral, DeepSeek, Groq, …) und gibt {ok, text} zurueck. Proxy noetig,
+        weil der Browser sonst an CORS scheitert; der API-Key bleibt im
+        lokalen Datenfluss (kein Logging). Default-Backend ist inzwischen die
+        Claude-CLI (/api/ai/ask) — dieser Proxy bleibt als API-Key-Fallback.
 
         Sicherheit: Dev-Server, an 127.0.0.1 gebunden — die Ziel-URL kommt vom
         Frontend (SSRF-unkritisch lokal). Beim spaeteren Hosting einschraenken.
@@ -195,10 +380,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             n = int(self.headers.get("Content-Length", 0))
             req = json.loads(self.rfile.read(n).decode("utf-8"))
-            endpoint = (req.get("endpoint") or "http://localhost:11434/v1").rstrip("/")
-            model = req.get("model") or "llama3.1"
+            endpoint = (req.get("endpoint") or "").rstrip("/")
+            model = req.get("model") or ""
             key = req.get("key") or ""
             messages = req.get("messages") or []
+            if not endpoint or not model:
+                self._json(200, {"ok": False, "fehler": "endpoint/model missing",
+                                 "hinweis": "Configure an API endpoint and model "
+                                            "in the chat settings (gear icon)."})
+                return
 
             url = endpoint if endpoint.endswith("/chat/completions") else endpoint + "/chat/completions"
             payload = json.dumps({"model": model, "messages": messages, "stream": False}).encode("utf-8")
@@ -221,7 +411,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                              "hinweis": body or "Endpoint/Modell/Key pruefen."})
         except urllib.error.URLError as e:
             self._json(200, {"ok": False, "fehler": "Backend nicht erreichbar",
-                             "hinweis": "Laeuft das Modell? (z.B. `ollama serve`) — %s" % e.reason})
+                             "hinweis": "Endpoint not reachable — check the URL. (%s)" % e.reason})
         except Exception as e:
             self._json(200, {"ok": False, "fehler": str(e)})
 

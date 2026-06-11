@@ -56,6 +56,9 @@ cd ingpad
 python server.py            # serves projekte/demo on http://localhost:8042/index.html
 ```
 
+> Or let your AI agent install it for you: paste [SETUP.md](SETUP.md) into your
+> coding agent (Claude Code, Cursor, …) and it does the rest.
+
 Open the URL, pick a step, handwrite your calculation, hit **send to AI**, then tell your AI agent it was sent — it reads the image, grades it, fills in the result.
 
 > The screenshots above show the included **demo** (a fictional wall-bracket statics task — copyright-free) and a real worked example (bucket-elevator drivetrain).
@@ -74,7 +77,26 @@ Open the URL, pick a step, handwrite your calculation, hit **send to AI**, then 
    next step opens                 and opens the next step
 ```
 
-The AI side currently runs through **Claude Code** (the agent reads `submit_<step>.png`). A model-agnostic, in-app chat (bring your own / local model) and a hosted, multi-user version are on the [roadmap](ROADMAP.md).
+## Use with your AI agent
+
+The in-app AI tutor (💬 button) works out of the box in one of two ways:
+
+**Default — your Claude subscription, no API key:**
+
+1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
+   (or the native installer from [docs.anthropic.com/claude-code](https://docs.anthropic.com/claude-code))
+2. Run `claude` once in a terminal and log in with your Claude account.
+3. Restart ingpad — done. The server runs the Claude CLI locally
+   (one persistent tutoring session per exercise).
+
+**Alternative — bring your own API key:** open the chat's ⚙ settings, switch to
+the *API key* tab, and pick a provider — Anthropic, OpenRouter, OpenAI, Mistral,
+Google Gemini, DeepSeek, Groq, or xAI (any OpenAI-compatible endpoint works).
+The key stays in your browser and the local server; nothing is logged.
+
+The chat shows this onboarding itself on first open, so you can also just
+start the server and click 💬. A hosted, multi-user version is on the
+[roadmap](ROADMAP.md).
 
 ## Add your own exercise
 
