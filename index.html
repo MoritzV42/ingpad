@@ -120,6 +120,51 @@
      abdunkeln, damit sie auf hellem Figur-Hintergrund lesbar bleiben. */
   body.light .figsvg line[stroke="#e6edf3"]{stroke:#1b2530}
   body.light .figsvg line[stroke="#5a6b7b"]{stroke:#46586a}
+  /* === Demo-Extras (nur statische Pages-Demo; Elemente werden per JS injiziert) === */
+  .lk{display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;padding:7px 11px;
+      border:1px dashed rgba(59,157,255,.45);border-radius:9px;background:rgba(59,157,255,.07);
+      font-size:12.3px;color:var(--mut);line-height:1.45}
+  .lk b{color:var(--acc)}
+  body.light .lk{background:rgba(23,105,196,.06);border-color:rgba(23,105,196,.4)}
+  .lk-fab{position:fixed;right:84px;bottom:26px;z-index:62;max-width:300px;background:var(--card);
+      box-shadow:0 6px 22px rgba(0,0,0,.4);transition:opacity .5s}
+  .lk-fab.hide{opacity:0}
+  #demo-cta{background:linear-gradient(90deg,#1b6fc4,#7a5af0);color:#fff;padding:11px 16px;font-size:13.5px;
+      display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+  #demo-cta .cta-row{display:flex;gap:6px 18px;flex-wrap:wrap;justify-content:center;align-items:center}
+  #demo-cta .cta-i{opacity:.95}
+  #demo-cta a{color:#fff;font-weight:600}
+  #demo-cta button{background:#fff;color:#1b3a6b;border:none;border-radius:8px;padding:7px 14px;
+      font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  #demo-cta button:hover{transform:translateY(-1px)}
+  #demo-cta button:disabled{opacity:.7;cursor:default;transform:none}
+  .sim-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 2px}
+  .sim-run{background:var(--acc);color:#04121f;border:none;border-radius:8px;padding:8px 15px;
+      font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+  .sim-run:hover{transform:translateY(-1px)}
+  .sim-run:disabled{opacity:.7;cursor:default;transform:none}
+  .sim-pulse{animation:simPulse .9s ease-in-out infinite}
+  @keyframes simPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,157,255,.7)}50%{box-shadow:0 0 0 9px rgba(59,157,255,0)}}
+  .sim-tutor{margin:14px 0;border:1px solid var(--line);border-left:3px solid var(--acc);
+      border-radius:10px;background:var(--card2);overflow:hidden}
+  .sim-h{display:flex;align-items:center;gap:8px;padding:8px 13px;border-bottom:1px solid var(--line);font-size:13px}
+  .sim-tag{margin-left:auto;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);
+      border:1px solid var(--line);border-radius:12px;padding:2px 8px;text-align:right}
+  .sim-b{padding:11px 14px;font-size:13.5px;white-space:pre-wrap;line-height:1.55;min-height:20px}
+  .sim-think::after{content:'';animation:simDots 1.2s steps(4,end) infinite}
+  @keyframes simDots{0%{content:''}25%{content:' .'}50%{content:' ..'}75%{content:' ...'}}
+  .sim-flash{animation:simFlash 1.6s ease}
+  @keyframes simFlash{0%{box-shadow:0 0 0 3px var(--done)}100%{box-shadow:0 0 0 0 transparent}}
+  .rail-new{color:var(--done)!important;font-weight:600}
+  #sim-final{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:70;max-width:540px;
+      width:calc(100% - 32px);background:var(--card);border:1px solid var(--done);border-radius:12px;
+      padding:14px 38px 13px 16px;font-size:13.5px;box-shadow:0 10px 34px rgba(0,0,0,.45);line-height:1.5}
+  #sim-final .x{position:absolute;top:6px;right:8px;background:none;border:none;color:var(--mut);font-size:15px;cursor:pointer}
+  #sim-final .row{display:flex;gap:12px;margin-top:9px;align-items:center;flex-wrap:wrap}
+  #sim-final a{color:var(--acc);font-weight:600}
+  #sim-final .rst{background:var(--card2);border:1px solid var(--line);color:var(--tx);border-radius:8px;
+      padding:6px 11px;cursor:pointer;font-size:12.5px}
+  @media(prefers-reduced-motion:reduce){.sim-pulse,.sim-flash,.sim-think::after{animation:none}}
 </style>
 </head>
 <body>
@@ -144,9 +189,11 @@
         <div class="row"><span class="k">zul. Spannung</span><span class="val">\(\sigma_{\text{zul}}=140\,\tfrac{\text{N}}{\text{mm}^2}\)</span></div>
         <div class="row"><span class="k">Sicherheit</span><span class="val">\(\nu=1{,}5\)</span></div>
         <div class="grp">Ergebnisse bisher</div>
-        <div class="row"><span class="k">Biegemoment \(M_b\)</span><span class="val">320 Nm</span></div>
-        <div class="row"><span class="k">Widerstandsmoment</span><span class="val">\(W=853\,\text{mm}^3\)</span></div>
-        <div class="row"><span class="k">Schraube</span><span class="val">offen</span></div>
+        <div class="row"><span class="k">Haltekraft \(F_H\)</span><span class="val">2133 N</span></div>
+        <div class="row"><span class="k">Biegemoment \(M_b\)</span><span class="val" id="rail-mb"><span class="muted">offen</span></span></div>
+        <div class="row"><span class="k">Widerstandsmoment \(W\)</span><span class="val" id="rail-w"><span class="muted">offen</span></span></div>
+        <div class="row"><span class="k">Biegespannung \(\sigma_b\)</span><span class="val" id="rail-sb"><span class="muted">offen</span></span></div>
+        <div class="row"><span class="k">Schraube</span><span class="val"><span class="muted">offen</span></span></div>
         <div class="grp">Konstanten</div>
         <div class="row"><span class="k">\(g\)</span><span class="val">\(9{,}81\,\tfrac{\text{m}}{\text{s}^2}\)</span></div>
       </div>
@@ -285,8 +332,10 @@
 window.addEventListener('load',()=>{const y=sessionStorage.getItem('sy');if(y)window.scrollTo(0,+y);});
 window.addEventListener('scroll',()=>sessionStorage.setItem('sy',window.scrollY),{passive:true});
 let lastMod=null;
-setInterval(async()=>{try{const r=await fetch(location.pathname,{method:'HEAD',cache:'no-store'});
+const lrTimer=setInterval(async()=>{try{const r=await fetch(location.pathname,{method:'HEAD',cache:'no-store'});
   const m=r.headers.get('Last-Modified');if(lastMod&&m&&m!==lastMod){location.reload();return;}if(m)lastMod=m;}catch(e){}},1500);
+// Auf der statischen Pages-Demo (static-shim vorhanden) gibt es nichts neu zu laden -> Polling stoppen.
+window.addEventListener('DOMContentLoaded',()=>{if(document.querySelector('script[src$="static-shim.js"]'))clearInterval(lrTimer);});
 
 /* Zeichenfeld: Stift · Zoom(Mausrad) · Pan(Hand) · höhenverstellbar · PNG an Claude */
 function setupDraw(el){
@@ -377,6 +426,17 @@ function setupDraw(el){
   const cw=el.querySelector('.cols');
   COLORS.forEach((c,i)=>{const d=document.createElement('span');d.className='sw';d.style.background=c;
     d.onclick=()=>{color=c;cw.querySelectorAll('.sw').forEach(x=>x.style.outline='');d.style.outline='2px solid #fff';};cw.appendChild(d);if(!i)d.style.outline='2px solid #fff';});
+  /* Sim-API für den gescripteten Demo-Durchlauf (nur statische Pages-Demo, s. Demo-Extras unten).
+     Bewusst OHNE save(): Simulations-Striche landen nie im localStorage des Users. */
+  el._sim={
+    begin:(t,c)=>{cur={tool:t||'pen',color:c||color,points:[]};strokes.push(cur);},
+    point:p=>{if(cur)cur.points.push(p);},
+    end:()=>{cur=null;},
+    addStroke:(pts,c)=>{strokes.push({tool:'pen',color:c||color,points:pts});},
+    clear:()=>{strokes=[];redraw();},
+    flush:()=>redraw(),
+    fit,status
+  };
   setTool('pen');new ResizeObserver(()=>fit()).observe(stage);fit();
 }
 document.querySelectorAll('.draw').forEach(setupDraw);
@@ -390,6 +450,292 @@ document.querySelectorAll('.draw').forEach(setupDraw);
 <script>
   /* Anhang-UI fuer alle .attach-Container initialisieren */
   document.querySelectorAll('.attach').forEach(setupAttachments);
+</script>
+
+<script>
+/* ============================================================================
+   Demo-Extras — NUR fuer die statische Pages-Demo (gh-pages).
+   Aktiv, wenn der static-shim geladen ist (vom Build-Skript injiziert)
+   oder ?demo=1 in der URL steht (lokales Testen des Demo-Modus).
+   Lokal mit echtem Server (python server.py demo) passiert hier NICHTS.
+
+   Inhalt:
+   1) Lokal-Callouts: an jedem Element steht, was die Vollversion dort kann.
+   2) CTA-Banner (ersetzt den schlichten Shim-Banner).
+   3) Gescripteter Tutor-Durchlauf: animierte Handschrift -> "senden" ->
+      Tutor-Antwort (Typewriter) -> Ergebnis-Box -> Schritt C schaltet frei.
+      Reines Frontend, klar als Simulation gelabelt. prefers-reduced-motion
+      wird respektiert (Zustaende ohne Animation).
+   ============================================================================ */
+(function(){
+'use strict';
+var IS_STATIC=!!document.querySelector('script[src$="static-shim.js"]')||/[?&]demo=1/.test(location.search);
+if(!IS_STATIC)return;
+var REPO='https://github.com/MoritzV42/ingpad';
+var SETUP=REPO+'#use-with-your-ai-agent';
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function onReady(f){if(document.readyState!=='loading')f();else addEventListener('DOMContentLoaded',f);}
+
+/* ---------------------------- 1) Lokal-Callouts ---------------------------- */
+function lk(html){var d=document.createElement('div');d.className='lk';
+  d.innerHTML='<span>💡</span><span>'+html+'</span>';return d;}
+
+function addCallouts(){
+  var rail=document.querySelector('aside .card .leg');
+  if(rail)rail.parentElement.appendChild(lk('<b>Lokal:</b> Diese Leiste füllt sich live, während du löst — bestätigte Ergebnisse trägt die KI automatisch ein.'));
+  var steps=document.querySelector('.steps');
+  if(steps)steps.parentElement.appendChild(lk('<b>Lokal:</b> Die Schritte schalten sich nacheinander frei, sobald die KI dein Ergebnis bestätigt hat.'));
+  var resA=document.querySelector('#A .res');
+  if(resA)resA.appendChild(lk('<b>Lokal:</b> Diese grüne Ergebnis-Box trägt der KI-Tutor automatisch ein, nachdem er deine handschriftliche Rechnung geprüft hat.'));
+  var draw=document.querySelector('#B .draw');
+  if(draw)draw.insertAdjacentElement('afterend',lk('<b>Lokal:</b> Hier schreibst du deine Rechnung von Hand (Stylus-first) — die KI liest deine Handschrift, rechnet nach und bewertet den Schritt. Zeichnen kannst du hier schon jetzt testen.'));
+  var att=document.querySelector('#B .attach');
+  if(att)att.insertAdjacentElement('afterend',lk('<b>Lokal:</b> Fotos oder PDFs zum Schritt anhängen — die KI nutzt sie als Kontext für die Bewertung.'));
+  /* Tutor-FAB (aus chat.js, laedt asynchron) — kurzer Hinweis daneben */
+  var tries=0,iv=setInterval(function(){
+    var fab=document.getElementById('igc-fab');
+    if(fab){clearInterval(iv);
+      var tip=lk('<b>Der eingebaute KI-Tutor</b> — läuft lokal mit deiner Claude-Subscription, kein API-Key nötig.');
+      tip.classList.add('lk-fab');document.body.appendChild(tip);
+      setTimeout(function(){tip.classList.add('hide');setTimeout(function(){tip.remove();},600);},9000);
+      fab.addEventListener('click',function(){tip.remove();},{once:true});
+    } else if(++tries>20)clearInterval(iv);
+  },250);
+}
+
+/* ------------------------------ 2) CTA-Banner ------------------------------ */
+function removeShimBanner(){
+  [].slice.call(document.body.children).forEach(function(n){
+    if(n.tagName==='DIV'&&n.id!=='demo-cta'&&/Live-Demo von/.test(n.textContent||'')&&/Vollversion/.test(n.textContent||''))n.remove();
+  });
+}
+function addBanner(){
+  removeShimBanner();setTimeout(removeShimBanner,300);
+  if(document.getElementById('demo-cta'))return;
+  var b=document.createElement('div');b.id='demo-cta';
+  b.innerHTML='<div class="cta-row">'+
+    '<span class="cta-i"><b>ingpad</b> — Live-Demo</span>'+
+    '<span class="cta-i">✏️ <b>Zeichnen:</b> hier direkt testbar</span>'+
+    '<span class="cta-i">🤖 <b>KI-Tutor:</b> lokal mit deiner Claude-Subscription — kein API-Key</span>'+
+    '<span class="cta-i">⚡ <b>Setup:</b> 2 Minuten</span>'+
+    '</div><div class="cta-row">'+
+    '<button id="cta-run" type="button">▶ So funktioniert\'s — Demo-Durchlauf</button>'+
+    '<a href="'+SETUP+'" target="_blank" rel="noopener">Repo &amp; Setup →</a></div>';
+  document.body.insertBefore(b,document.body.firstChild);
+  b.querySelector('#cta-run').addEventListener('click',runSim);
+}
+function addRunButton(){
+  var draw=document.querySelector('#B .draw');if(!draw)return;
+  var bar=document.createElement('div');bar.className='sim-bar';
+  bar.innerHTML='<button class="sim-run" type="button">▶ So funktioniert\'s — Demo-Durchlauf</button>'+
+    '<span class="muted" style="font-size:12px">Gescriptete Simulation des lokalen KI-Workflows — auf dieser Seite läuft keine echte KI.</span>';
+  draw.parentElement.insertBefore(bar,draw);
+  bar.querySelector('.sim-run').addEventListener('click',runSim);
+}
+
+/* ------------------- 3) Handschrift-Mini-Font + Layout --------------------- */
+/* Polylines je Glyphe, Box 8x12, Baseline y=10 (x nach rechts, y nach unten) */
+var G={
+ '0':[[[4.5,2],[3,3],[2.6,6],[3,9],[4.5,10],[5.8,9],[6.2,6],[5.8,3],[4.5,2]]],
+ '1':[[[3,3.6],[4.8,2.2],[4.9,10]]],
+ '2':[[[2.6,3.8],[3.4,2.4],[5.2,2.2],[6.1,3.6],[5.6,5.6],[2.6,10],[6.4,9.8]]],
+ '3':[[[2.6,3.2],[4.2,2.2],[5.9,3.4],[4.6,5.4],[5.9,6.8],[5.7,9],[4,10],[2.6,9.2]]],
+ '4':[[[5,2.2],[2.2,7.4],[6.5,7.3]],[[5,4.8],[5.1,10]]],
+ '5':[[[6,2.4],[3.1,2.4],[2.8,5.6],[4.6,5.1],[6,6.4],[5.8,8.8],[4,10],[2.7,9.1]]],
+ '6':[[[5.6,2.4],[3.8,3.8],[2.9,6.6],[3,9],[4.6,10],[5.9,8.8],[5.8,7],[4.3,6.3],[3,7.2]]],
+ '8':[[[4.5,5.6],[3.2,4.6],[3.3,3],[4.6,2.2],[5.8,3],[5.7,4.6],[4.5,5.6],[3,6.8],[2.9,9],[4.4,10],[5.9,9.2],[6,7],[4.5,5.6]]],
+ ',':[[[4.2,9.4],[3.6,11.4]]],
+ '=':[[[2.4,5.2],[6.2,5]],[[2.4,7.2],[6.2,7]]],
+ '·':[[[4.2,6],[4.5,6.2]]],
+ '/':[[[5.9,2.2],[2.6,10.4]]],
+ '>':[[[2.6,3.8],[6.2,6.4],[2.6,9.2]]],
+ '≈':[[[2.2,5.4],[3.3,4.6],[4.8,5.4],[6.2,4.6]],[[2.2,7.4],[3.3,6.6],[4.8,7.4],[6.2,6.6]]],
+ '→':[[[1.8,6],[6.6,6]],[[5.3,4.7],[6.6,6],[5.3,7.3]]],
+ '✗':[[[2.6,3],[6.2,9.6]],[[6.1,3],[2.6,9.6]]],
+ 'M':[[[1.8,10],[2.4,2.4],[4.5,8],[6.6,2.4],[7.1,10]]],
+ 'b':[[[2.5,2],[2.8,10]],[[2.8,6.4],[4.5,5.2],[5.9,6.4],[6,8.6],[4.6,10],[2.8,9]]],
+ 'F':[[[6.2,2.5],[3,2.4],[2.7,10]],[[2.9,6],[5.6,5.9]]],
+ 'N':[[[2,10],[2.4,2.4],[6.2,10],[6.6,2.4]]],
+ 'm':[[[2,10],[2.3,5.4]],[[2.3,6.5],[3.3,5.2],[4.2,6],[4.3,10]],[[4.3,6.6],[5.4,5.2],[6.4,6],[6.5,10]]],
+ 'W':[[[1.4,2.4],[2.7,10],[4.2,5],[5.6,10],[7,2.4]]],
+ 't':[[[4,2.4],[4.1,9],[4.9,10],[5.8,9.4]],[[2.8,4.6],[5.6,4.5]]],
+ 'h':[[[2.5,2],[2.8,10]],[[2.8,6.3],[4.4,5.2],[5.8,6.3],[5.9,10]]],
+ 'ℓ':[[[3,9.2],[5.4,3.2],[4.5,2.1],[3.6,3.8],[3.6,8.4],[4.6,10],[6,9.2]]],
+ 'σ':[[[6.8,4.6],[5.2,4.5],[3.6,5.1],[2.8,7],[3.1,9.1],[4.8,10],[6,8.8],[6.2,6.6],[5,4.8]]],
+ 'P':[[[2.4,10],[2.8,2.4],[5.6,2.7],[6.3,4.2],[5.5,5.9],[2.9,6.1]]],
+ 'r':[[[2.8,10],[3,5.4]],[[3,6.8],[4.2,5.3],[5.5,5.5]]],
+ 'o':[[[4.5,5.3],[3.1,6],[2.7,7.8],[3.4,9.6],[5.1,9.8],[6,8],[5.7,6.2],[4.5,5.3]]],
+ 'f':[[[5.8,2.7],[4.6,2.2],[3.9,3.4],[3.8,10]],[[2.7,5.4],[5.2,5.3]]],
+ 'i':[[[4,5.5],[4.1,10]],[[3.9,3.6],[4.05,3.9]]],
+ 'l':[[[4,2.1],[4.2,8.8],[5,10],[5.9,9.2]]]
+};
+var ADV={'i':3.6,'l':4.8,'t':5.8,'r':5.2,',':3.4,'·':4,'f':5.6,'1':5,'M':8.8,'W':8.8,'m':8.2,'→':8.2,'N':8,'b':7,'h':7,'σ':7.6};
+
+/* Handschrift-Zeilen: '_x' = tiefgestellt, '^x' = hochgestellt */
+var LINES=[
+ 'M_b = F·ℓ = 800 N · 0,4 m = 320 Nm',
+ 'W = t·h^2/6 = 8·40^2/6 = 2133 mm^3',
+ 'σ_b = 320000/2133 ≈ 150 N/mm^2',
+ '150 > 140 → Profil ✗'
+];
+
+function densify(pts,step){
+  var out=[pts[0]];
+  for(var i=1;i<pts.length;i++){
+    var a=pts[i-1],b=pts[i],d=Math.hypot(b.x-a.x,b.y-a.y),n=Math.max(1,Math.round(d/step));
+    for(var k=1;k<=n;k++){var t=k/n;
+      out.push({x:a.x+(b.x-a.x)*t+(Math.random()-.5)*1.4,
+                y:a.y+(b.y-a.y)*t+(Math.random()-.5)*1.4,
+                p:0.45+Math.random()*0.25});}}
+  return out;
+}
+function layoutLine(s,x0,y0,sc){
+  var x=x0,toks=[],mode=0;
+  for(var i=0;i<s.length;i++){var ch=s[i];
+    if(ch===' '){x+=4*sc;continue;}
+    if(ch==='_'){mode=1;continue;}
+    if(ch==='^'){mode=2;continue;}
+    var g=G[ch];if(!g){x+=4*sc;mode=0;continue;}
+    var s2=mode?sc*0.62:sc,dy=mode===1?3.2*sc:(mode===2?-3.4*sc:0);
+    var jx=(Math.random()-.5)*2.2,jy=(Math.random()-.5)*2.6;
+    for(var k=0;k<g.length;k++){var pl=g[k],pts=[];
+      for(var n=0;n<pl.length;n++)
+        pts.push({x:x+pl[n][0]*s2+jx,y:y0+dy+pl[n][1]*s2+jy,p:0.5});
+      toks.push(pts);}
+    x+=(ADV[ch]||7.2)*s2;mode=0;}
+  return toks;
+}
+function buildHandwriting(){
+  var sc=5.4,x0=120,ys=[110,280,450,620],out=[];
+  for(var li=0;li<LINES.length;li++){
+    var toks=layoutLine(LINES[li],x0,ys[li],sc);
+    for(var k=0;k<toks.length;k++)out.push(densify(toks[k],7));}
+  return out;
+}
+
+/* ----------------------- Tutor-Antwort + Zustandswechsel ------------------- */
+var TUTOR_TEXT='Ich habe deine Handschrift gelesen — sauber aufgeschrieben! Ich rechne nach:\n\n'+
+'✓ M_b = F·ℓ = 800 N · 0,4 m = 320 Nm\n'+
+'✓ W = t·h²/6 = 8·40²/6 ≈ 2133 mm³\n'+
+'✓ σ_b = M_b/W = 320 000 Nmm / 2133 mm³ ≈ 150 N/mm²\n\n'+
+'⚠ Der wichtige Teil: 150 N/mm² > σ_zul = 140 N/mm² — dein Nachweis zeigt, dass der Flachstahl 40×8 knapp NICHT reicht. Genau richtig erkannt!\n'+
+'Erforderlich: W ≥ M_b/σ_zul ≈ 2286 mm³ → z. B. 50×8 (W = 3333 mm³, σ_b ≈ 96 N/mm² ✓).\n\n'+
+'Ich trage das Ergebnis ein und schalte Schritt C frei.';
+
+function typewrite(el,text,done){
+  if(RM){el.textContent=text;done();return;}
+  el.textContent='';var i=0;
+  (function tick(){el.textContent=text.slice(0,i);i+=2;
+    if(i<=text.length+1)setTimeout(tick,14);else done();})();
+}
+function makeBubble(){
+  var card=document.getElementById('B');
+  var w=document.createElement('div');w.className='sim-tutor';
+  w.innerHTML='<div class="sim-h">🤖 <b>KI-Tutor</b><span class="sim-tag">Simulation — lokal antwortet die echte KI</span></div>'+
+    '<div class="sim-b"><span class="sim-think">liest deine Handschrift</span></div>';
+  card.insertBefore(w,card.querySelector('h3'));
+  w.scrollIntoView({behavior:RM?'auto':'smooth',block:'nearest'});
+  return w.querySelector('.sim-b');
+}
+function insertResult(){
+  var card=document.getElementById('B');
+  var box=document.createElement('div');box.className='res sim-flash';
+  box.innerHTML='<div class="lab">Ergebnis B — von der KI eingetragen (Simulation)</div>'+
+    '<p style="margin:.4em 0 0">M<sub>b</sub> = <b>320 Nm</b> · W<sub>40×8</sub> = 2133 mm³ · σ<sub>b</sub> ≈ 150 N/mm² &gt; σ<sub>zul</sub> = 140 N/mm² → <b>Profil auf 50×8 erhöht</b> (W = 3333 mm³, σ<sub>b</sub> ≈ 96 N/mm² ✓)</p>';
+  box.appendChild(lk('<b>Lokal:</b> Diese Box füllt die echte KI automatisch aus, nachdem sie deine Handschrift geprüft hat.'));
+  card.insertBefore(box,card.querySelector('h3'));
+}
+function railSet(id,txt){var el=document.getElementById(id);if(!el)return;
+  el.textContent=txt;el.classList.add('rail-new');}
+function completeB(){
+  var cardB=document.getElementById('B');cardB.classList.add('done');
+  var pill=cardB.querySelector('.pill');
+  if(pill){pill.textContent='erledigt';pill.style.color='var(--done)';pill.style.borderColor='var(--done)';}
+  var steps=document.querySelectorAll('.steps .step');
+  if(steps.length>=3){
+    var sB=steps[1],sC=steps[2];
+    sB.classList.remove('active');sB.querySelector('.badge').className='badge b-done';
+    var stB=sB.querySelector('.st');stB.textContent='erledigt';stB.style.color='var(--done)';
+    sC.classList.add('active');sC.querySelector('.badge').className='badge b-work';
+    var stC=sC.querySelector('.st');stC.textContent='in Arbeit';stC.style.color='var(--work)';}
+  var cardC=document.getElementById('C');
+  if(cardC){cardC.classList.remove('open');cardC.classList.add('sim-flash');
+    cardC.style.borderLeftColor='var(--work)';
+    var pc=cardC.querySelector('.pill');
+    if(pc){pc.textContent='in Arbeit';pc.style.color='var(--work)';pc.style.borderColor='var(--work)';}}
+  railSet('rail-mb','320 Nm');
+  railSet('rail-w','3333 mm³ (50×8)');
+  railSet('rail-sb','≈ 96 N/mm² ✓');
+}
+function finale(){
+  var t=document.createElement('div');t.id='sim-final';
+  t.innerHTML='<button class="x" type="button" title="Schließen">✕</button>'+
+    '<b>✨ Genau so läuft\'s lokal — mit echter KI.</b> Handschrift schreiben → senden → der Tutor prüft, trägt ein und schaltet den nächsten Schritt frei. Setup in 2 Minuten.'+
+    '<div class="row"><a href="'+SETUP+'" target="_blank" rel="noopener">Repo &amp; Setup →</a>'+
+    '<button class="rst" type="button">↺ Demo zurücksetzen</button></div>';
+  document.body.appendChild(t);
+  t.querySelector('.x').onclick=function(){t.remove();};
+  t.querySelector('.rst').onclick=function(){location.reload();};
+}
+
+/* ------------------------------ Ablauf-Steuerung --------------------------- */
+function animate(api,strokes,done){
+  var color=document.body.classList.contains('light')?'#1d3a5c':'#ffd14a';
+  if(RM){for(var i=0;i<strokes.length;i++)api.addStroke(strokes[i],color);api.flush();done();return;}
+  var si=0,pi=0;
+  (function frame(){
+    var budget=7;
+    while(budget>0&&si<strokes.length){
+      var s=strokes[si];
+      if(pi===0)api.begin('pen',color);
+      var take=Math.min(budget,s.length-pi);
+      for(var k=0;k<take;k++)api.point(s[pi+k]);
+      pi+=take;budget-=take;
+      if(pi>=s.length){api.end();si++;pi=0;}}
+    api.flush();
+    if(si<strokes.length)requestAnimationFrame(frame);else done();
+  })();
+}
+var running=false,doneOnce=false;
+function setRunButtons(txt,dis){
+  [].slice.call(document.querySelectorAll('#cta-run,.sim-run')).forEach(function(b){b.disabled=!!dis;b.textContent=txt;});}
+function runSim(){
+  if(running)return;
+  if(doneOnce){location.reload();return;}
+  var drawEl=document.querySelector('#B .draw'),api=drawEl&&drawEl._sim;
+  if(!api)return;
+  running=true;setRunButtons('⏳ Simulation läuft …',true);
+  drawEl.scrollIntoView({behavior:RM?'auto':'smooth',block:'center'});
+  var stage=drawEl.querySelector('.draw-stage');if(stage)stage.style.height='340px';
+  api.fit();api.clear();
+  api.status('🤖 Simulation: so sieht es lokal aus, wenn du selbst schreibst …');
+  var strokes=buildHandwriting();
+  setTimeout(function(){
+    animate(api,strokes,function(){
+      var send=drawEl.querySelector('[data-act=send]');
+      if(send)send.classList.add('sim-pulse');
+      api.status('📤 An die KI senden …');
+      setTimeout(function(){
+        if(send)send.classList.remove('sim-pulse');
+        api.status('✓ gesendet — der Tutor liest deine Handschrift …');
+        var bubble=makeBubble();
+        setTimeout(function(){
+          typewrite(bubble,TUTOR_TEXT,function(){
+            insertResult();completeB();
+            api.status('✓ Schritt B erledigt — Schritt C ist freigeschaltet');
+            finale();
+            running=false;doneOnce=true;
+            setRunButtons('↺ Demo zurücksetzen',false);
+          });
+        },RM?300:1700);
+      },RM?200:900);
+    });
+  },RM?100:600);
+}
+
+onReady(function(){addBanner();addCallouts();addRunButton();});
+})();
 </script>
 </body>
 </html>
