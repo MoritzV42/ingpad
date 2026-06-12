@@ -1,16 +1,16 @@
 # ingpad
 
+It's late, you're alone with the script from your technician or engineering course, stuck on one exercise — and there's nobody around who can explain it properly. Sound familiar?
+
+That's the moment `ingpad` was built for. It's **more than a digital scratch pad — it's a patient teacher**: it reads your handwriting, checks every calculation step, explains what's missing, and only then unlocks the next step.
+
 ![ingpad](docs/banner.png)
 
 **▶ [Live-Demo ausprobieren](https://moritzv42.github.io/ingpad/)** — läuft direkt im Browser, kein Setup.
 
-> The engineer's scratch pad — solve a technical exercise on one canvas: framework data, step-by-step **Given / Sought / Approach**, stylus sketches and an AI tutor, side by side.
-
 ![ingpad overview](docs/hero.png)
 
-`ingpad` turns a technical exercise (the kind you get in engineering / technician school) into a single interactive canvas. You solve each step by **handwriting** into a drawing field; the AI checks your work, records the result, and opens the next step.
-
-It's deliberately **socratic**: you think, the AI asks and verifies — it doesn't just hand you the answer.
+The whole exercise (the kind you get in engineering / technician school) lives on **one interactive canvas**: framework data, step-by-step **Given / Sought / Approach**, stylus sketches and the AI tutor, side by side. You solve each step by **handwriting** into a drawing field — deliberately **socratic**: you think, the tutor asks and verifies; it doesn't just hand you the answer.
 
 ---
 
