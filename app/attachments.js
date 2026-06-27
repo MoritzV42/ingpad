@@ -38,7 +38,7 @@
     s.id = "ingpad-attach-css";
     s.textContent = [
       ".attach{margin-top:12px}",
-      ".attach .att-drop{border:1.5px dashed var(--line,#2c3a4a);border-radius:10px;",
+      ".attach .att-drop{display:block;border:1.5px dashed var(--line,#2c3a4a);border-radius:10px;",
       "  background:var(--card2,#1e2935);padding:14px 16px;text-align:center;color:var(--mut,#8aa0b4);",
       "  cursor:pointer;transition:border-color .15s,background .15s;font-size:13.5px}",
       ".attach .att-drop:hover{border-color:var(--acc,#3b9dff);color:var(--tx,#e6edf3)}",
