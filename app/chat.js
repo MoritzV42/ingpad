@@ -172,7 +172,7 @@
   // ---- Provider presets (prefill endpoint + example model) -------------------
   var PRESETS = {
     anthropic: {
-      endpoint: "https://api.anthropic.com/v1", model: "claude-opus-4-8",
+      endpoint: "https://api.anthropic.com/v1", model: "claude-opus-5-5",
       hint: "Anthropic supports the OpenAI-compatible /v1/chat/completions endpoint — this works as-is with an Anthropic API key.",
     },
     openrouter: { endpoint: "https://openrouter.ai/api/v1", model: "openrouter/auto" },
