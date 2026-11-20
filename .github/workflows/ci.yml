@@ -1,8 +1,21 @@
 name: ci
 
+# push nur auf main, Zweige mit PR prüft pull_request (vorher lief jeder PR-Commit doppelt).
+# Reine Markdown- und Bildänderungen lösen keinen Lauf aus; eine PDF bleibt immer prüfpflichtig.
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '**.png'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.png'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   python:
